@@ -106,3 +106,32 @@ func (u *UserController) register(c *gin.Context) {
 	}
 
 }
+func (u *UserController) login(c *gin.Context) {
+	user := &model.User{}
+	err := c.Bind(user)
+	if err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest})
+		return
+	}
+	if user.Name != "" && user.Password != "" {
+		password, err := model.InfoPasswordByName(u.db, u.tableName, user.Name)
+		if err != nil {
+			c.Error(err)
+			c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest})
+			return
+		}
+		if password == user.Password {
+			m := make(map[string]interface{}, 2)
+			m["name"] = user.Name
+			m["string"] = user.Password
+			tokenString := jwt.CreateToken(m)
+			c.SetCookie("token", tokenString, 3600, "/", "localhost", false, true)
+
+		} else {
+			c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "msg": "密码错误"})
+		}
+
+		c.String(http.StatusOK, "登陆成功")
+	}
+}
