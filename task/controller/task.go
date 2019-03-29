@@ -163,7 +163,7 @@ func (t *TaskController) infoAllCsv(c *gin.Context) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		_, err = file.WriteString(task.Reciver.Name + ",")
+		_, err = file.WriteString(task.Reciver[0].Name + ",")
 		if err != nil {
 			log.Fatal(err)
 		}

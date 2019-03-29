@@ -1,7 +1,7 @@
 package model
 
 import (
-	"TEST/user/model"
+	user "TEST/user/model"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -9,12 +9,12 @@ import (
 )
 
 type Task struct {
-	ID          int        `json:"taskId`
-	Name        string     `json:name`
-	Description string     `json:description`
-	CreateTime  time.Time  `json:createTime`
-	Reciver     model.User `json:receiver`
-	Poster      model.User `json:poster`
+	ID          int         `json:"taskId`
+	Name        string      `json:name`
+	Description string      `json:description`
+	CreateTime  time.Time   `json:createTime`
+	Reciver     []user.User `json:receiver`
+	Poster      user.User   `json:poster`
 }
 
 const (

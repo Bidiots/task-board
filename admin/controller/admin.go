@@ -1,8 +1,8 @@
 package controller
 
 import (
+	"TEST/admin/model"
 	"TEST/jwt"
-	"TEST/user/model"
 	"database/sql"
 	"log"
 	"net/http"
@@ -10,33 +10,34 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type UserController struct {
+type AdminController struct {
 	db        *sql.DB
 	tableName string
 }
 
-func New(db *sql.DB, tableName string) *UserController {
-	return &UserController{
+func NewAdminController(db *sql.DB, tableName string) *AdminController {
+	return &AdminController{
 		db:        db,
 		tableName: tableName,
 	}
 }
-func (u *UserController) RegisterRouter(r gin.IRouter) {
+
+func (a *AdminController) RegisterRouter(r gin.IRouter) {
 	if r == nil {
 		log.Fatal("[InitRouter]: server is nil")
 	}
 
-	err := model.CreateTable(u.db, u.tableName)
+	err := model.CreateTable(a.db, a.tableName)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	r.POST("/register", u.register)
-	r.POST("/delete/:id", u.deleteByID)
-	r.POST("/info/:id", u.infoByID)
-	r.POST("/login", u.login)
+	r.POST("/register", a.register)
+	r.POST("/delete/:id", a.deleteByID)
+	r.POST("/info/:id", a.infoByID)
+	r.POST("/login", a.login)
 }
-func (u *UserController) infoByID(c *gin.Context) {
+func (a *AdminController) infoByID(c *gin.Context) {
 	var (
 		req struct {
 			ID int `json:"id"`
@@ -50,7 +51,7 @@ func (u *UserController) infoByID(c *gin.Context) {
 		return
 	}
 
-	ban, err := model.InfoByID(u.db, u.tableName, req.ID)
+	ban, err := model.InfoByID(a.db, a.tableName, req.ID)
 	if err != nil {
 		c.Error(err)
 		c.JSON(http.StatusBadGateway, gin.H{"status": http.StatusBadGateway})
@@ -59,7 +60,7 @@ func (u *UserController) infoByID(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "ban": ban})
 }
-func (u *UserController) deleteByID(c *gin.Context) {
+func (a *AdminController) deleteByID(c *gin.Context) {
 	var (
 		req struct {
 			ID int `json:"id"`
@@ -73,7 +74,7 @@ func (u *UserController) deleteByID(c *gin.Context) {
 		return
 	}
 
-	err = model.DeleteByID(u.db, u.tableName, req.ID)
+	err = model.DeleteByID(a.db, a.tableName, req.ID)
 	if err != nil {
 		c.Error(err)
 		c.JSON(http.StatusBadGateway, gin.H{"status": http.StatusBadGateway})
@@ -82,22 +83,22 @@ func (u *UserController) deleteByID(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK})
 }
-func (u *UserController) register(c *gin.Context) {
-	var user1 model.User
-	err := c.BindJSON(&user1)
+func (a *AdminController) register(c *gin.Context) {
+	var user model.Admin
+	err := c.BindJSON(&user)
 	if err != nil {
 		c.Error(err)
 		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest})
 		return
 	}
-	if user1.Name != "" && user1.Password != "" {
-		_, err = model.InsertUser(u.db, u.tableName, user1.Name, user1.Password)
+	if user.Name != "" && user.Password != "" {
+		_, err = model.InsertAdmin(a.db, a.tableName, user.Name, user.Password)
 		if err != nil {
 			log.Fatal(err)
 		}
 		m := make(map[string]interface{}, 2)
-		m["name"] = user1.Name
-		m["string"] = user1.Password
+		m["name"] = user.Name
+		m["string"] = user.Password
 		tokenString := jwt.CreateToken(m)
 		c.SetCookie("token", tokenString, 3600, "/", "localhost", false, true)
 
@@ -107,8 +108,8 @@ func (u *UserController) register(c *gin.Context) {
 	}
 
 }
-func (u *UserController) login(c *gin.Context) {
-	user := &model.User{}
+func (a *AdminController) login(c *gin.Context) {
+	user := &model.Admin{}
 	err := c.Bind(user)
 	if err != nil {
 		c.Error(err)
@@ -116,7 +117,7 @@ func (u *UserController) login(c *gin.Context) {
 		return
 	}
 	if user.Name != "" && user.Password != "" {
-		password, err := model.InfoPasswordByName(u.db, u.tableName, user.Name)
+		password, err := model.InfoPasswordByName(a.db, a.tableName, user.Name)
 		if err != nil {
 			c.Error(err)
 			c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest})
