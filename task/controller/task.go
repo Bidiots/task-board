@@ -2,13 +2,8 @@ package controller
 
 import (
 	"database/sql"
-	"encoding/csv"
-	"fmt"
 	"log"
 	"net/http"
-	"os"
-	"regexp"
-	"strconv"
 	"task-board/jwt"
 	"task-board/task/model"
 	"time"
@@ -42,30 +37,36 @@ func (t *TaskController) RegisterRouter(r gin.IRouter) {
 	r.POST("/info/all", t.infoAll)
 	r.GET("/info/download", t.infoAllCsv)
 	r.POST("/info/descripty", t.updateDescription)
-	r.GET("/user/tasks", t.showUserTask)
+	r.GET("/user/tasks", t.infoUserTask)
 	r.POST("/task/accept", t.updateReceiver)
 }
-func (t *TaskController) infoByID(c *gin.Context) {
-	var (
-		req struct {
-			ID int `json:"id"`
-		}
-	)
-	err := c.ShouldBind(&req)
+
+func (t *TaskController) publish(c *gin.Context) {
+	task := model.Task{}
+	err := c.BindJSON(&task)
 	if err != nil {
 		c.Error(err)
 		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest})
 		return
 	}
-	task, err := model.InfoByID(t.db, t.TableName, req.ID)
-	if err != nil {
-		c.Error(err)
-		c.JSON(http.StatusBadGateway, gin.H{"status": http.StatusBadGateway})
+	if len(task.Name) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "msg": "task name can't be empty"})
 		return
 	}
-
-	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "task": task})
+	if len(task.Description) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "msg": "task descripty can't be empty"})
+		return
+	}
+	task.CreateTime = time.Now()
+	_, err = model.InsertTask(t.db, t.TableName, task.Name, task.Description, task.CreateTime, task.Poster)
+	if err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK})
 }
+
 func (t *TaskController) deleteByID(c *gin.Context) {
 	var (
 		req struct {
@@ -108,162 +109,4 @@ func (t *TaskController) deleteByID(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK})
-}
-func (t *TaskController) publish(c *gin.Context) {
-	task := model.Task{}
-	err := c.BindJSON(&task)
-	if err != nil {
-		c.Error(err)
-		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest})
-		return
-	}
-	if len(task.Name) == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "msg": "task name can't be empty"})
-		return
-	}
-	if len(task.Description) == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "msg": "task descripty can't be empty"})
-		return
-	}
-	task.CreateTime = time.Now()
-	_, err = model.InsertTask(t.db, t.TableName, task.Name, task.Description, task.CreateTime, task.Poster)
-	if err != nil {
-		c.Error(err)
-		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest})
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK})
-}
-func (t *TaskController) infoAll(c *gin.Context) {
-	ban, err := model.InfoAllTask(t.db, t.TableName)
-	if err != nil {
-		c.Error(err)
-		c.JSON(http.StatusBadGateway, gin.H{"status": http.StatusBadGateway})
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "ban": ban})
-}
-func (t *TaskController) infoAllCsv(c *gin.Context) {
-	tasks, err := model.InfoAllTask(t.db, t.TableName)
-	if err != nil {
-		c.Error(err)
-		c.JSON(http.StatusBadGateway, gin.H{"status": http.StatusBadGateway})
-		return
-	}
-	file, err := os.Create("task.csv")
-	if err != nil {
-		c.Error(err)
-		c.JSON(http.StatusBadGateway, gin.H{"status": http.StatusBadGateway})
-		return
-	}
-	defer file.Close()
-
-	csv.NewReader(file)
-	for _, task := range tasks {
-		_, err := file.WriteString(strconv.Itoa(task.ID) + ",")
-		if err != nil {
-			log.Fatal(err)
-		}
-		_, err = file.WriteString(task.Name + ",")
-		if err != nil {
-			log.Fatal(err)
-		}
-		_, err = file.WriteString(task.Description + ",")
-		if err != nil {
-			log.Fatal(err)
-		}
-		_, err = file.WriteString(task.Receiver + ",")
-		if err != nil {
-			log.Fatal(err)
-		}
-		_, err = file.WriteString(task.Poster + ",")
-		if err != nil {
-			log.Fatal(err)
-		}
-		_, err = file.WriteString("\n")
-		if err != nil {
-			log.Fatal(err)
-		}
-
-	}
-}
-func (t *TaskController) updateDescription(c *gin.Context) {
-	var (
-		req struct {
-			Description string `json:"description"`
-			ID          int    `json:"id"`
-			User        string `json:"user"`
-		}
-	)
-
-	err := c.ShouldBind(&req)
-	if err != nil {
-		c.Error(err)
-		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest})
-		return
-	}
-	poster, err := model.InfoPosterNameByID(t.db, t.TableName, req.ID)
-
-	if err != nil {
-		c.Error(err)
-		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest})
-		return
-	}
-	if ok, _ := regexp.MatchString(req.User, poster); !ok {
-		c.Error(err)
-		c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "msg": "Without Permission"})
-		return
-	}
-	err = model.UpdateDescriptionByID(t.db, t.TableName, req.ID, req.Description)
-	if err != nil {
-		c.Error(err)
-		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest})
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK})
-}
-func (t *TaskController) showUserTask(c *gin.Context) {
-	var req struct {
-		userName string
-	}
-	err := c.BindJSON(&req)
-	if err != nil {
-		c.Error(err)
-		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest})
-		return
-	}
-	tasks, err := model.InfoByReceiver(t.db, t.TableName, req.userName)
-	if err != nil {
-		c.Error(err)
-		c.JSON(http.StatusBadGateway, gin.H{"status": http.StatusBadGateway})
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{"Status": http.StatusOK, "tasks": tasks})
-}
-func (t *TaskController) updateReceiver(c *gin.Context) {
-	var req struct {
-		userId int
-		taskId int
-	}
-	err := c.ShouldBind(&req)
-	if err != nil {
-		c.Error(err)
-		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest})
-		return
-	}
-	receiver, err := model.InfoReceiverByID(t.db, t.TableName, req.taskId)
-	if err != nil {
-		c.Error(err)
-		c.JSON(http.StatusBadGateway, gin.H{"status": http.StatusBadGateway})
-		return
-	}
-	receiver = fmt.Sprintf(receiver + strconv.Itoa(req.userId))
-	err = model.UpdateReceiver(t.db, t.TableName, receiver, req.taskId)
-
-	if err != nil {
-		c.Error(err)
-		c.JSON(http.StatusBadGateway, gin.H{"status": http.StatusBadGateway})
-		return
-	}
-
 }
