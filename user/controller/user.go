@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -32,8 +33,8 @@ func (u *UserController) RegisterRouter(r gin.IRouter) {
 	}
 
 	r.POST("/register", u.register)
-	r.POST("/delete/id", u.deleteByID)
-	r.POST("/info/id", u.infoByID)
+	r.GET("/delete/:id", u.deleteByID)
+	r.GET("/info/:id", u.infoByID)
 	r.POST("/login", u.login)
 }
 func (u *UserController) infoByID(c *gin.Context) {
@@ -60,20 +61,14 @@ func (u *UserController) infoByID(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "ban": ban})
 }
 func (u *UserController) deleteByID(c *gin.Context) {
-	var (
-		req struct {
-			ID int `json:"id"`
-		}
-	)
-
-	err := c.ShouldBind(&req)
+	ID := c.Param("id")
+	IDint, err := strconv.Atoi(ID)
 	if err != nil {
 		c.Error(err)
-		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest})
+		c.JSON(http.StatusOK, gin.H{"status": http.StatusBadRequest})
 		return
 	}
-
-	err = model.DeleteByID(u.db, u.tableName, req.ID)
+	err = model.DeleteByID(u.db, u.tableName, IDint)
 	if err != nil {
 		c.Error(err)
 		c.JSON(http.StatusBadGateway, gin.H{"status": http.StatusBadGateway})
