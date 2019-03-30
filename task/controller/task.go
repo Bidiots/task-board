@@ -26,6 +26,7 @@ func New(db *sql.DB, tableName string) *TaskController {
 		TableName: tableName,
 	}
 }
+
 func (t *TaskController) RegisterRouter(r gin.IRouter) {
 	if r == nil {
 		log.Fatal("[InitRouter]: server is nil")
@@ -85,7 +86,7 @@ func (t *TaskController) deleteByID(c *gin.Context) {
 		if claimsmap, ok := claims.(map[string]string); ok {
 			if claimsmap["name"] != handler {
 				c.Error(err)
-				c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "msg": "无操作权限"})
+				c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "msg": "Without permission"})
 				return
 			}
 		}
@@ -109,15 +110,15 @@ func (t *TaskController) publish(c *gin.Context) {
 		return
 	}
 	if len(task.Name) == 0 {
-		c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "msg": "任务名不能为空"})
+		c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "msg": "task name can't be empty"})
 		return
 	}
 	if len(task.Description) == 0 {
-		c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "msg": "任务描述不能为空"})
+		c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "msg": "task descripty can't be empty"})
 		return
 	}
 	task.CreateTime = time.Now()
-	_, err = model.InsertTask(t.db, t.TableName, task.Name, task.Description, task.CreateTime, task.Poster.Name)
+	_, err = model.InsertTask(t.db, t.TableName, task.Name, task.Description, task.CreateTime, task.Poster)
 	if err != nil {
 		c.Error(err)
 		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest})
@@ -163,11 +164,11 @@ func (t *TaskController) infoAllCsv(c *gin.Context) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		_, err = file.WriteString(task.Reciver[0].Name + ",")
+		_, err = file.WriteString(task.Reciver + ",")
 		if err != nil {
 			log.Fatal(err)
 		}
-		_, err = file.WriteString(task.Poster.Name + ",")
+		_, err = file.WriteString(task.Poster + ",")
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -203,7 +204,7 @@ func (t *TaskController) updateDescription(c *gin.Context) {
 	}
 	if ok, _ := regexp.MatchString(req.User, poster); !ok {
 		c.Error(err)
-		c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "msg": "无操作权限"})
+		c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "msg": "Without Permission"})
 		return
 	}
 	err = model.UpdateDescriptionByID(t.db, t.TableName, req.ID, req.Description)
@@ -214,4 +215,22 @@ func (t *TaskController) updateDescription(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK})
 
+}
+func (t *TaskController) ShowUserTask(c gin.Context) {
+	var req struct {
+		userName string
+	}
+	err := c.BindJSON(&req)
+	if err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest})
+		return
+	}
+	tasks, err := model.InfoByReceiver(t.db, t.TableName, req.userName)
+	if err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadGateway, gin.H{"status": http.StatusBadGateway})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"Status": http.StatusOK, "tasks": tasks})
 }

@@ -93,7 +93,9 @@ func (u *UserController) register(c *gin.Context) {
 	if user1.Name != "" && user1.Password != "" {
 		_, err = model.InsertUser(u.db, u.tableName, user1.Name, user1.Password)
 		if err != nil {
-			log.Fatal(err)
+			c.Error(err)
+			c.JSON(http.StatusBadGateway, gin.H{"status": http.StatusBadGateway})
+			return
 		}
 		m := make(map[string]interface{}, 2)
 		m["name"] = user1.Name
@@ -101,9 +103,10 @@ func (u *UserController) register(c *gin.Context) {
 		tokenString := jwt.CreateToken(m)
 		c.SetCookie("token", tokenString, 3600, "/", "localhost", false, true)
 
-		c.String(http.StatusOK, "注册成功")
+		c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "msg": "register ok"})
 	} else {
-		log.Println("用户名不能为空")
+		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest})
+
 	}
 
 }
@@ -119,7 +122,7 @@ func (u *UserController) login(c *gin.Context) {
 		password, err := model.InfoPasswordByName(u.db, u.tableName, user.Name)
 		if err != nil {
 			c.Error(err)
-			c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest})
+			c.JSON(http.StatusBadGateway, gin.H{"status": http.StatusBadGateway})
 			return
 		}
 		if password == user.Password {
@@ -130,9 +133,9 @@ func (u *UserController) login(c *gin.Context) {
 			c.SetCookie("token", tokenString, 3600, "/", "localhost", false, true)
 
 		} else {
-			c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "msg": "密码错误"})
+			c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "msg": "password is wrong"})
 		}
 
-		c.String(http.StatusOK, "登陆成功")
+		c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "msg": "login ok"})
 	}
 }

@@ -1,7 +1,6 @@
 package model
 
 import (
-	user "TEST/user/model"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -9,12 +8,12 @@ import (
 )
 
 type Task struct {
-	ID          int         `json:"taskId`
-	Name        string      `json:name`
-	Description string      `json:description`
-	CreateTime  time.Time   `json:createTime`
-	Reciver     []user.User `json:receiver`
-	Poster      user.User   `json:poster`
+	ID          int       `json:"taskId`
+	Name        string    `json:name`
+	Description string    `json:description`
+	CreateTime  time.Time `json:createTime`
+	Receiver    string    `json:receiver`
+	Poster      string    `json:poster`
 }
 
 const (
@@ -26,6 +25,7 @@ const (
 	mysqlTaskInfoDescripty
 	mysqlTaskPosterByID
 	mysqlTaskUpdateByID
+	mysqlTaskInfoByReceiver
 )
 
 var (
@@ -47,9 +47,42 @@ var (
 		`SELETE description FROM %s WHERE taskId = ? LIMIT 1`,
 		`SELETE poster FROM %s WHERE taskId = ? LIMIT 1`,
 		`UPDATE %s SET description=? WHERE taskId = ? LIMIT 1`,
+		`SELETE * FROM %s WHERE receiver LIKE '%?%'`,
 	}
 )
 
+func InfoByReceiver(db *sql.DB, tableName string, receiver string) (tasks []Task, err error) {
+	var (
+		id          int
+		name        string
+		description string
+		createTime  time.Time
+		reciver     string
+		poster      string
+	)
+	sql := fmt.Sprintf(TaskSQLString[mysqlTaskInfoByReceiver], tableName)
+	rows, err := db.Query(sql, receiver)
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		if err := rows.Scan(&id, &name, &description, &createTime, &receiver, &poster); err != nil {
+
+			task := Task{
+				ID:          id,
+				Name:        name,
+				Description: description,
+				CreateTime:  createTime,
+				Receiver:    reciver,
+				Poster:      poster,
+			}
+			tasks = append(tasks, task)
+
+		}
+	}
+	return tasks, nil
+
+}
 func UpdateDescriptionByID(db *sql.DB, tableName string, id int, descripty string) error {
 	sql := fmt.Sprintf(TaskSQLString[mysqlTaskUpdateByID], tableName)
 	_, err := db.Exec(sql, descripty, id)
@@ -105,7 +138,7 @@ func InfoByID(db *sql.DB, tableName string, id int) (*Task, error) {
 	defer rows.Close()
 
 	for rows.Next() {
-		if err := rows.Scan(&task.ID, &task.Name, &task.Description, &task.CreateTime, &task.Reciver, &task.Poster); err != nil {
+		if err := rows.Scan(&task.ID, &task.Name, &task.Description, &task.CreateTime, &task.Receiver, &task.Poster); err != nil {
 			return nil, err
 		}
 	}
@@ -116,22 +149,36 @@ func DeleteByID(db *sql.DB, tableName string, id int) error {
 	_, err := db.Exec(sql, id)
 	return err
 }
-func InfoAllTask(db *sql.DB, tableName string) ([]Task, error) {
+func InfoAllTask(db *sql.DB, tableName string) (tasks []Task, err error) {
+	var (
+		id          int
+		name        string
+		description string
+		createTime  time.Time
+		receiver    string
+		poster      string
+	)
 	sql := fmt.Sprintf(TaskSQLString[mysqlTaskInfoAll], tableName)
 	rows, err := db.Query(sql)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	i := 0
-	task := make([]Task, 100, 100)
 	for rows.Next() {
-		i++
-		if err := rows.Scan(&task[i].ID, &task[i].Name, &task[i].Description, &task[i].CreateTime, &task[i].Reciver, &task[i].Poster); err != nil {
+		if err := rows.Scan(&id, &name, &description, &createTime, &receiver, &poster); err != nil {
 			return nil, err
 		}
+		task := Task{
+			ID:          id,
+			Name:        name,
+			Description: description,
+			CreateTime:  createTime,
+			Receiver:    receiver,
+			Poster:      poster,
+		}
+		tasks = append(tasks, task)
 	}
-	return task, err
+	return tasks, err
 }
 func InfoDescription(db *sql.DB, tableName string, id int) (string, error) {
 	sql := fmt.Sprintf(TaskSQLString[mysqlTaskInfoDescripty], tableName)
