@@ -86,6 +86,7 @@ func InfoByReceiver(db *sql.DB, tableName string, receiver string) (tasks []Task
 func UpdateDescriptionByID(db *sql.DB, tableName string, id int, descripty string) error {
 	sql := fmt.Sprintf(TaskSQLString[mysqlTaskUpdateByID], tableName)
 	_, err := db.Exec(sql, descripty, id)
+
 	if err != nil {
 		return err
 	}

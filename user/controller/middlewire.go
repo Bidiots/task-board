@@ -24,20 +24,18 @@ func (u *UserController) Jwttest(c *gin.Context) gin.HandlerFunc {
 			if claimsmap, ok := claims.(map[string]string); ok {
 				password, err := model.InfoPasswordByName(u.db, u.tableName, claimsmap["name"])
 				if err != nil {
-					c.JSON(http.StatusOK, gin.H{"status": err})
+					c.JSON(http.StatusOK, gin.H{"status": http.StatusBadGateway})
 					c.Abort()
 					return
 				}
-				if password == claimsmap["password"] {
-					c.JSON(http.StatusOK, gin.H{
-						"status": http.StatusOK,
-						"msg":    "密码错误"})
+				if password != claimsmap["password"] {
+					c.JSON(http.StatusBadRequest, gin.H{
+						"status": http.StatusBadRequest,
+						"msg":    "Wrong Password"})
+					c.Abort()
+					return
 				}
 			}
-		} else {
-			c.JSON(http.StatusOK, gin.H{"status": "err"})
-			c.Abort()
-			return
 		}
 	}
 }

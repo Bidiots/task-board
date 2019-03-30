@@ -97,9 +97,10 @@ func (u *UserController) register(c *gin.Context) {
 			c.JSON(http.StatusBadGateway, gin.H{"status": http.StatusBadGateway})
 			return
 		}
-		m := make(map[string]interface{}, 2)
+		m := make(map[string]interface{}, 3)
 		m["name"] = user1.Name
 		m["string"] = user1.Password
+		m["tyoe"] = "user"
 		tokenString := jwt.CreateToken(m)
 		c.SetCookie("token", tokenString, 3600, "/", "localhost", false, true)
 
@@ -126,9 +127,10 @@ func (u *UserController) login(c *gin.Context) {
 			return
 		}
 		if password == user.Password {
-			m := make(map[string]interface{}, 2)
+			m := make(map[string]interface{}, 3)
 			m["name"] = user.Name
 			m["string"] = user.Password
+			m["type"] = "user"
 			tokenString := jwt.CreateToken(m)
 			c.SetCookie("token", tokenString, 3600, "/", "localhost", false, true)
 

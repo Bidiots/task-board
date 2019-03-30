@@ -96,9 +96,10 @@ func (a *AdminController) register(c *gin.Context) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		m := make(map[string]interface{}, 2)
+		m := make(map[string]interface{}, 3)
 		m["name"] = user.Name
 		m["string"] = user.Password
+		m["type"] = "admin"
 		tokenString := jwt.CreateToken(m)
 		c.SetCookie("token", tokenString, 3600, "/", "localhost", false, true)
 
@@ -124,9 +125,10 @@ func (a *AdminController) login(c *gin.Context) {
 			return
 		}
 		if password == user.Password {
-			m := make(map[string]interface{}, 2)
+			m := make(map[string]interface{}, 3)
 			m["name"] = user.Name
 			m["string"] = user.Password
+			m["type"] = "admin"
 			tokenString := jwt.CreateToken(m)
 			c.SetCookie("token", tokenString, 3600, "/", "localhost", false, true)
 

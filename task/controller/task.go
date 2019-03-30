@@ -37,9 +37,11 @@ func (t *TaskController) RegisterRouter(r gin.IRouter) {
 	}
 	r.POST("/post", t.publish)
 	r.POST("/delete", t.deleteByID)
-	r.POST("/info/id", t.infoByID)
+	r.POST("/info/:id", t.infoByID)
 	r.POST("/info/all", t.infoAll)
 	r.GET("/info/download", t.infoAllCsv)
+	r.POST("/info/descripty", t.updateDescription)
+	r.GET("/:id/tasks", t.showUserTask)
 }
 func (t *TaskController) infoByID(c *gin.Context) {
 	var (
@@ -81,10 +83,12 @@ func (t *TaskController) deleteByID(c *gin.Context) {
 	if err != nil {
 		token = "NotSet"
 		c.SetCookie("token", "", 3600, "/", "localhost", false, true)
+		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest})
+		return
 	}
 	if claims, ok := jwt.ParseToken(token); ok {
 		if claimsmap, ok := claims.(map[string]string); ok {
-			if claimsmap["name"] != handler {
+			if claimsmap["name"] != handler && claimsmap["type"] != "admin" {
 				c.Error(err)
 				c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "msg": "Without permission"})
 				return
@@ -110,11 +114,11 @@ func (t *TaskController) publish(c *gin.Context) {
 		return
 	}
 	if len(task.Name) == 0 {
-		c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "msg": "task name can't be empty"})
+		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "msg": "task name can't be empty"})
 		return
 	}
 	if len(task.Description) == 0 {
-		c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "msg": "task descripty can't be empty"})
+		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "msg": "task descripty can't be empty"})
 		return
 	}
 	task.CreateTime = time.Now()
@@ -164,7 +168,7 @@ func (t *TaskController) infoAllCsv(c *gin.Context) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		_, err = file.WriteString(task.Reciver + ",")
+		_, err = file.WriteString(task.Receiver + ",")
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -178,7 +182,6 @@ func (t *TaskController) infoAllCsv(c *gin.Context) {
 		}
 
 	}
-
 }
 func (t *TaskController) updateDescription(c *gin.Context) {
 	var (
@@ -216,7 +219,7 @@ func (t *TaskController) updateDescription(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK})
 
 }
-func (t *TaskController) ShowUserTask(c gin.Context) {
+func (t *TaskController) showUserTask(c *gin.Context) {
 	var req struct {
 		userName string
 	}
