@@ -32,8 +32,8 @@ func (u *UserController) RegisterRouter(r gin.IRouter) {
 	}
 
 	r.POST("/register", u.register)
-	r.POST("/delete/:id", u.deleteByID)
-	r.POST("/info/:id", u.infoByID)
+	r.POST("/delete/id", u.deleteByID)
+	r.POST("/info/id", u.infoByID)
 	r.POST("/login", u.login)
 }
 func (u *UserController) infoByID(c *gin.Context) {
@@ -100,7 +100,7 @@ func (u *UserController) register(c *gin.Context) {
 		m := make(map[string]interface{}, 3)
 		m["name"] = user1.Name
 		m["string"] = user1.Password
-		m["tyoe"] = "user"
+		m["type"] = "user"
 		tokenString := jwt.CreateToken(m)
 		c.SetCookie("token", tokenString, 3600, "/", "localhost", false, true)
 
