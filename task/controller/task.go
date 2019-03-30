@@ -37,11 +37,11 @@ func (t *TaskController) RegisterRouter(r gin.IRouter) {
 	}
 	r.POST("/post", t.publish)
 	r.POST("/delete", t.deleteByID)
-	r.POST("/info/:id", t.infoByID)
+	r.POST("/info/id", t.infoByID)
 	r.POST("/info/all", t.infoAll)
 	r.GET("/info/download", t.infoAllCsv)
 	r.POST("/info/descripty", t.updateDescription)
-	r.GET("/:id/tasks", t.showUserTask)
+	r.GET("/id/tasks", t.showUserTask)
 }
 func (t *TaskController) infoByID(c *gin.Context) {
 	var (

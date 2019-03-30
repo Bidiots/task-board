@@ -15,7 +15,7 @@ type AdminController struct {
 	tableName string
 }
 
-func NewAdminController(db *sql.DB, tableName string) *AdminController {
+func New(db *sql.DB, tableName string) *AdminController {
 	return &AdminController{
 		db:        db,
 		tableName: tableName,

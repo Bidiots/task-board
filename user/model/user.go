@@ -27,7 +27,7 @@ var (
 		`CREATE TABLE IF NOT EXISTS %s (
 			userId    INT NOT NULL AUTO_INCREMENT,
 			name        VARCHAR(100) UNIQUE DEFAULT NULL,
-			password	VARCHAR(40) UNIQUE DEFAULT NULL,
+			password	VARCHAR(40)  DEFAULT NULL,
 			PRIMARY KEY (userId)
 		)ENGINE=InnoDB DEFAULT CHARSET=utf8`,
 		`INSERT INTO  %s (name,password) VALUES (?,?)`,

@@ -20,7 +20,7 @@ func main() {
 	}
 	UserCon := user.New(dbConn, "user1")
 	TaskCon := task.New(dbConn, "task")
-	AdminCon := admin.NewAdminController(dbConn, "admin")
+	AdminCon := admin.New(dbConn, "admin")
 	AdminCon.RegisterRouter(router.Group("/admin"))
 	UserCon.RegisterRouter(router.Group("/user"))
 	TaskCon.RegisterRouter(router.Group("/task"))

@@ -32,14 +32,14 @@ var (
 	errInvalidInsert = errors.New("insert task:insert affected 0 rows")
 	TaskSQLString    = []string{
 		`CREATE TABLE IF NOT EXISTS %s (
-			taskId    INT NOT NULL AUTO_INCREMENT,
-			name        VARCHAR(100) UNIQUE DEFAULT NULL,
-			description VARCHAR(255) UNIQUE DEFAULT NULL,
-			createTime  DATATIME UNIQUE DEFAULT NULL,
-			receiver	VARCHAR(100)	
-			poster		VARCHAR(100)	UNIQUE DEFAULT NULL,
-			PRIMARY KEY (TaskId)
-		)ENGINE=InnoDB DEFAULT CHARSET=utf8`,
+			taskId INT NOT NULL AUTO_INCREMENT, 
+			name VARCHAR(100) UNIQUE DEFAULT NULL, 
+			description VARCHAR(255) UNIQUE DEFAULT NULL, 
+			createTime DATETIME UNIQUE DEFAULT NULL, 
+			receiver VARCHAR(100) UNIQUE DEFAULT NULL, 
+			poster VARCHAR(100) UNIQUE DEFAULT NULL, 
+			PRIMARY KEY (taskId)
+		  ) ENGINE = InnoDB DEFAULT CHARSET = utf8`,
 		`INSERT INTO  %s (name,description,createtime,poster) VALUES (?,?)`,
 		`SELECT * FROM %s WHERE taskId = ? LIMIT 1 LOCK IN SHARE MODE`,
 		`DELETE FROM %s WHERE taskId = ? LIMIT 1`,
