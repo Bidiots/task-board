@@ -1,8 +1,6 @@
 package controller
 
 import (
-	"TEST/jwt"
-	"TEST/task/model"
 	"database/sql"
 	"encoding/csv"
 	"log"
@@ -10,6 +8,8 @@ import (
 	"os"
 	"regexp"
 	"strconv"
+	"task-board/jwt"
+	"task-board/task/model"
 	"time"
 
 	"github.com/gin-gonic/gin"

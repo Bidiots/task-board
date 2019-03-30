@@ -1,10 +1,10 @@
 package controller
 
 import (
-	"TEST/user/model"
 	"net/http"
+	"task-board/user/model"
 
-	"TEST/jwt"
+	"task-board/jwt"
 
 	"github.com/gin-gonic/gin"
 )

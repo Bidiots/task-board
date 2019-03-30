@@ -8,12 +8,12 @@ import (
 )
 
 type Task struct {
-	ID          int       `json:"taskId`
-	Name        string    `json:name`
-	Description string    `json:description`
-	CreateTime  time.Time `json:createTime`
-	Receiver    string    `json:receiver`
-	Poster      string    `json:poster`
+	ID          int       `json:"taskId"`
+	Name        string    `json:"name"`
+	Description string    `json:"description"`
+	CreateTime  time.Time `json:"createTime"`
+	Receiver    string    `json:"receiver"`
+	Poster      string    `json:"poster"`
 }
 
 const (

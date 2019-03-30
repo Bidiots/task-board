@@ -1,11 +1,11 @@
 package main
 
 import (
-	admin "TEST/admin/controller"
-	task "TEST/task/controller"
-	user "TEST/user/controller"
 	"database/sql"
 	"net/http"
+	admin "task-board/admin/controller"
+	task "task-board/task/controller"
+	user "task-board/user/controller"
 	"time"
 
 	"github.com/gin-gonic/gin"
