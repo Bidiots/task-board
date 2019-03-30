@@ -38,20 +38,15 @@ func (u *UserController) RegisterRouter(r gin.IRouter) {
 	r.POST("/login", u.login)
 }
 func (u *UserController) infoByID(c *gin.Context) {
-	var (
-		req struct {
-			ID int `json:"id"`
-		}
-	)
-
-	err := c.ShouldBind(&req)
+	ID := c.Param("id")
+	IDint, err := strconv.Atoi(ID)
 	if err != nil {
 		c.Error(err)
 		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest})
 		return
 	}
 
-	ban, err := model.InfoByID(u.db, u.tableName, req.ID)
+	ban, err := model.InfoByID(u.db, u.tableName, IDint)
 	if err != nil {
 		c.Error(err)
 		c.JSON(http.StatusBadGateway, gin.H{"status": http.StatusBadGateway})

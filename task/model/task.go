@@ -26,6 +26,8 @@ const (
 	mysqlTaskPosterByID
 	mysqlTaskUpdateByID
 	mysqlTaskInfoByReceiver
+	mysqlTaskUpdateReceiver
+	mysqlTaskInfoReceiverById
 )
 
 var (
@@ -40,17 +42,40 @@ var (
 			poster VARCHAR(100) UNIQUE DEFAULT NULL, 
 			PRIMARY KEY (taskId)
 		  ) ENGINE = InnoDB DEFAULT CHARSET = utf8`,
-		`INSERT INTO  %s (name,description,createtime,poster) VALUES (?,?,?,?)`,
+		`INSERT INTO  %s (name,description,createtime,poster,receiver) VALUES (?,?,?,?,?)`,
 		`SELECT * FROM %s WHERE taskId = ? LIMIT 1 LOCK IN SHARE MODE`,
 		`DELETE FROM %s WHERE taskId = ? LIMIT 1`,
-		`SELETE * FROM %s`,
-		`SELETE description FROM %s WHERE taskId = ? LIMIT 1`,
-		`SELETE poster FROM %s WHERE taskId = ? LIMIT 1`,
+		`SELECT * FROM %s`,
+		`SELECT description FROM %s WHERE taskId = ? LIMIT 1`,
+		`SELECT poster FROM %s WHERE taskId = ? LIMIT 1`,
 		`UPDATE %s SET description=? WHERE taskId = ? LIMIT 1`,
-		`SELETE * FROM %s WHERE receiver LIKE '%?%'`,
+		`SELECT * FROM %s WHERE receiver LIKE '%?%'`,
+		`UPDATE %s SET receiver=? WHERE taskId = ? LIMIT 1`,
+		`SELECT %S FROM %s WHERE taskId = ? LIMIT 1`,
 	}
 )
 
+func InfoReceiverByID(db *sql.DB, tableName string, id int) (receiver string, err error) {
+	sql := fmt.Sprintf(TaskSQLString[mysqlTaskUpdateReceiver], tableName)
+	rows, err := db.Query(sql, id)
+	if err != nil {
+		return "", err
+	}
+	for rows.Next() {
+		if err := rows.Scan(&receiver); err != nil {
+			return "", nil
+		}
+	}
+	return receiver, nil
+}
+func UpdateReceiver(db *sql.DB, tableName string, receiver string, id int) error {
+	sql := fmt.Sprintf(TaskSQLString[mysqlTaskUpdateReceiver], tableName)
+	_, err := db.Exec(sql, receiver, id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
 func InfoByReceiver(db *sql.DB, tableName string, receiver string) (tasks []Task, err error) {
 	var (
 		id          int
@@ -115,7 +140,8 @@ func CreateTable(db *sql.DB, tableName string) error {
 }
 func InsertTask(db *sql.DB, tableName string, name string, description string, createTime time.Time, user string) (int, error) {
 	sql := fmt.Sprintf(TaskSQLString[mysqlTaskInsert], tableName)
-	result, err := db.Exec(sql, name, description, createTime, user)
+	receiver := ""
+	result, err := db.Exec(sql, name, description, createTime, user, receiver)
 	if err != nil {
 		return 0, err
 	}

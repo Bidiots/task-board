@@ -3,6 +3,7 @@ package controller
 import (
 	"database/sql"
 	"encoding/csv"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -41,7 +42,8 @@ func (t *TaskController) RegisterRouter(r gin.IRouter) {
 	r.POST("/info/all", t.infoAll)
 	r.GET("/info/download", t.infoAllCsv)
 	r.POST("/info/descripty", t.updateDescription)
-	r.GET("/id/tasks", t.showUserTask)
+	r.GET("/user/tasks", t.showUserTask)
+	r.POST("/task/accept", t.updateReceiver)
 }
 func (t *TaskController) infoByID(c *gin.Context) {
 	var (
@@ -77,6 +79,7 @@ func (t *TaskController) deleteByID(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest})
 		return
 	}
+
 	handler, err := model.InfoPosterNameByID(t.db, t.TableName, req.ID)
 
 	token, err := c.Cookie("token")
@@ -94,6 +97,7 @@ func (t *TaskController) deleteByID(c *gin.Context) {
 				return
 			}
 		}
+
 		err = model.DeleteByID(t.db, t.TableName, req.ID)
 		if err != nil {
 			c.Error(err)
@@ -217,7 +221,6 @@ func (t *TaskController) updateDescription(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK})
-
 }
 func (t *TaskController) showUserTask(c *gin.Context) {
 	var req struct {
@@ -236,4 +239,31 @@ func (t *TaskController) showUserTask(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"Status": http.StatusOK, "tasks": tasks})
+}
+func (t *TaskController) updateReceiver(c *gin.Context) {
+	var req struct {
+		userId int
+		taskId int
+	}
+	err := c.ShouldBind(&req)
+	if err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest})
+		return
+	}
+	receiver, err := model.InfoReceiverByID(t.db, t.TableName, req.taskId)
+	if err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadGateway, gin.H{"status": http.StatusBadGateway})
+		return
+	}
+	receiver = fmt.Sprintf(receiver + strconv.Itoa(req.userId))
+	err = model.UpdateReceiver(t.db, t.TableName, receiver, req.taskId)
+
+	if err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadGateway, gin.H{"status": http.StatusBadGateway})
+		return
+	}
+
 }

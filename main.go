@@ -14,7 +14,7 @@ import (
 
 func main() {
 	router := gin.Default()
-	dbConn, err := sql.Open("mysql", "root:123@tcp(127.0.0.1:3306)/test1?charset=utf8")
+	dbConn, err := sql.Open("mysql", "root:123@tcp(127.0.0.1:3306)/test1?charset=utf8&parseTime=true")
 	if err != nil {
 		panic(err)
 	}
