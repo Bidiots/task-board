@@ -40,7 +40,7 @@ var (
 			poster VARCHAR(100) UNIQUE DEFAULT NULL, 
 			PRIMARY KEY (taskId)
 		  ) ENGINE = InnoDB DEFAULT CHARSET = utf8`,
-		`INSERT INTO  %s (name,description,createtime,poster) VALUES (?,?)`,
+		`INSERT INTO  %s (name,description,createtime,poster) VALUES (?,?,?,?)`,
 		`SELECT * FROM %s WHERE taskId = ? LIMIT 1 LOCK IN SHARE MODE`,
 		`DELETE FROM %s WHERE taskId = ? LIMIT 1`,
 		`SELETE * FROM %s`,
@@ -115,7 +115,7 @@ func CreateTable(db *sql.DB, tableName string) error {
 }
 func InsertTask(db *sql.DB, tableName string, name string, description string, createTime time.Time, user string) (int, error) {
 	sql := fmt.Sprintf(TaskSQLString[mysqlTaskInsert], tableName)
-	result, err := db.Exec(sql, name, description, createTime)
+	result, err := db.Exec(sql, name, description, createTime, user)
 	if err != nil {
 		return 0, err
 	}
