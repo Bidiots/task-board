@@ -79,33 +79,13 @@ func (t *TaskController) deleteByID(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest})
 		return
 	}
-	/*
-		handler, err := model.InfoPosterNameByID(t.db, t.TableName, req.ID)
 
-		token, err := c.Cookie("token")
-		if err != nil {
-			token = "NotSet"
-			c.SetCookie("token", "", 3600, "/", "localhost", false, true)
-			c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest})
-			return
-		}
-		if claims, ok := jwt.ParseToken(token); ok {
-			if claimsmap, ok := claims.(map[string]string); ok {
-				if claimsmap["name"] != handler && claimsmap["type"] != "admin" {
-					c.Error(err)
-					c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "msg": "Without permission"})
-					return
-				}
-			}
-	*/
 	err = model.DeleteByID(t.db, t.TableName, req.ID)
 	if err != nil {
 		c.Error(err)
 		c.JSON(http.StatusBadGateway, gin.H{"status": http.StatusBadGateway})
 		return
 	}
-
-	//}
 
 	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK})
 }
