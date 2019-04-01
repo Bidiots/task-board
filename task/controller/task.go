@@ -60,7 +60,7 @@ func (t *TaskController) publish(c *gin.Context) {
 	_, err = model.InsertTask(t.db, t.TableName, task.Name, task.Description, task.CreateTime, task.Poster)
 	if err != nil {
 		c.Error(err)
-		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest})
+		c.JSON(http.StatusBadGateway, gin.H{"status": http.StatusBadGateway})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK})

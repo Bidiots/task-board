@@ -3,7 +3,6 @@ package main
 import (
 	"database/sql"
 	"net/http"
-	admin "task-board/admin/controller"
 	task "task-board/task/controller"
 	user "task-board/user/controller"
 	"time"
@@ -20,8 +19,6 @@ func main() {
 	}
 	UserCon := user.New(dbConn, "user1")
 	TaskCon := task.New(dbConn, "task")
-	AdminCon := admin.New(dbConn, "admin")
-	AdminCon.RegisterRouter(router.Group("/admin"))
 	UserCon.RegisterRouter(router.Group("/user"))
 	TaskCon.RegisterRouter(router.Group("/task"))
 	server := &http.Server{

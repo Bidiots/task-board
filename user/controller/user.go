@@ -81,16 +81,15 @@ func (u *UserController) register(c *gin.Context) {
 		return
 	}
 	if user1.Name != "" && user1.Password != "" {
-		_, err = model.InsertUser(u.db, u.tableName, user1.Name, user1.Password)
+		userID, err := model.InsertUser(u.db, u.tableName, user1.Name, user1.Password)
 		if err != nil {
 			c.Error(err)
 			c.JSON(http.StatusBadGateway, gin.H{"status": http.StatusBadGateway})
 			return
 		}
-		m := make(map[string]interface{}, 3)
+		m := make(map[string]interface{}, 2)
+		m["userID"] = userID
 		m["name"] = user1.Name
-		m["string"] = user1.Password
-		m["type"] = "user"
 		tokenString := jwt.CreateToken(m)
 		c.SetCookie("token", tokenString, 3600, "/", "localhost", false, true)
 
@@ -117,10 +116,9 @@ func (u *UserController) login(c *gin.Context) {
 			return
 		}
 		if password == user.Password {
-			m := make(map[string]interface{}, 3)
+			m := make(map[string]interface{}, 2)
 			m["name"] = user.Name
-			m["string"] = user.Password
-			m["type"] = "user"
+			m["userID"] = user.ID
 			tokenString := jwt.CreateToken(m)
 			c.SetCookie("token", tokenString, 3600, "/", "localhost", false, true)
 
