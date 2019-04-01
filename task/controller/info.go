@@ -17,12 +17,14 @@ func (t *TaskController) infoByID(c *gin.Context) {
 			ID int `json:"id"`
 		}
 	)
+
 	err := c.ShouldBind(&req)
 	if err != nil {
 		c.Error(err)
 		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest})
 		return
 	}
+
 	task, err := model.InfoByID(t.db, t.TableName, req.ID)
 	if err != nil {
 		c.Error(err)
@@ -40,6 +42,7 @@ func (t *TaskController) infoAll(c *gin.Context) {
 		c.JSON(http.StatusBadGateway, gin.H{"status": http.StatusBadGateway})
 		return
 	}
+
 	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "ban": ban})
 }
 
@@ -50,6 +53,7 @@ func (t *TaskController) infoAllCsv(c *gin.Context) {
 		c.JSON(http.StatusBadGateway, gin.H{"status": http.StatusBadGateway})
 		return
 	}
+
 	file, err := os.Create("task.csv")
 	if err != nil {
 		c.Error(err)
@@ -92,17 +96,20 @@ func (t *TaskController) infoUserTask(c *gin.Context) {
 	var req struct {
 		userName string
 	}
+
 	err := c.BindJSON(&req)
 	if err != nil {
 		c.Error(err)
 		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest})
 		return
 	}
+
 	tasks, err := model.InfoByReceiver(t.db, t.TableName, req.userName)
 	if err != nil {
 		c.Error(err)
 		c.JSON(http.StatusBadGateway, gin.H{"status": http.StatusBadGateway})
 		return
 	}
+
 	c.JSON(http.StatusOK, gin.H{"Status": http.StatusOK, "tasks": tasks})
 }
