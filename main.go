@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"net/http"
+	permission "task-board/permission/controller"
 	task "task-board/task/controller"
 	user "task-board/user/controller"
 	"time"
@@ -19,6 +20,8 @@ func main() {
 	}
 	UserCon := user.New(dbConn, "user1")
 	TaskCon := task.New(dbConn, "task")
+	Permission := permission.New(dbConn)
+	Permission.RegisterRouter(router.Group("/permission"))
 	UserCon.RegisterRouter(router.Group("/user"))
 	TaskCon.RegisterRouter(router.Group("/task"))
 	server := &http.Server{
