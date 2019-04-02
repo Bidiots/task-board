@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (u *UserController) MiddleFunc(c *gin.Context) gin.HandlerFunc {
+func (u *UserController) MiddleWareJWT() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		tokenString := c.Request.Header.Get("token")
 		if tokenString == "" {

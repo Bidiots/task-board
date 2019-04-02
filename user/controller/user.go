@@ -35,7 +35,6 @@ func (u *UserController) RegisterRouter(r gin.IRouter) {
 	r.POST("/register", u.register)
 	r.GET("/delete/:id", u.deleteByID)
 	r.GET("/info/:id", u.infoByID)
-	r.POST("/login", u.login)
 }
 func (u *UserController) infoByID(c *gin.Context) {
 	ID := c.Param("id")
@@ -100,7 +99,7 @@ func (u *UserController) register(c *gin.Context) {
 	}
 
 }
-func (u *UserController) login(c *gin.Context) {
+func (u *UserController) Login(c *gin.Context) {
 	user := &model.User{}
 	err := c.Bind(user)
 	if err != nil {

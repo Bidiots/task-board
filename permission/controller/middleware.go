@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (c *Controller) CheckPermission(ctx *gin.Context) gin.HandlerFunc {
+func (c *Controller) CheckPermission() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		check := false
 		tokenString := ctx.Request.Header.Get("token")

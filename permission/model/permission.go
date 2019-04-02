@@ -23,16 +23,16 @@ type permission struct {
 var (
 	permissionSqlString = []string{
 		`CREATE TABLE IF NOT EXISTS permission (
-			url			VARCHAR(512) NOT NULL DEFAULT ' ',
-			role_id		MEDIUMINT UNSIGNED NOT NULL,
-			created_at 	DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-			PRIMARY KEY (url,role_id)
-		) ENGINE=InnoDB AUTO_INCREMENT=1000 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;`,
-		`INSERT INTO permission(url,role_id) VALUES (?,?)`,
-		`DELETE FROM permission WHERE role_id = ? AND url = ? LIMIT 1`,
+			url			VARCHAR(255) NOT NULL DEFAULT ' ',
+			roleId		MEDIUMINT UNSIGNED NOT NULL,
+			createdAt 	DATETIME UNIQUE DEFAULT NULL,
+			PRIMARY KEY (url,roleId)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8`,
+		`INSERT INTO permission(url,roleId) VALUES (?,?)`,
+		`DELETE FROM permission WHERE roleId = ? AND url = ? LIMIT 1`,
 		`SELECT * FROM permission, role WHERE url = ? `,
 		`SELECT * FROM permission LOCK IN SHARE MODE`,
-		`SELECT permission.role_id FROM permission, role WHERE permission.url = ? AND permission.role_id = role.id LOCK IN SHARE MODE`,
+		`SELECT permission.roleId FROM permission, role WHERE permission.url = ? AND permission.roleId = role.id LOCK IN SHARE MODE`,
 	}
 )
 

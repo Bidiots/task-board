@@ -34,9 +34,9 @@ var (
 	errInvalidInsert = errors.New("insert task:insert affected 0 rows")
 	TaskSQLString    = []string{
 		`CREATE TABLE IF NOT EXISTS %s (
-			taskId INT NOT NULL AUTO_INCREMENT, 
-			name VARCHAR(100) UNIQUE DEFAULT NULL, 
-			description VARCHAR(255) UNIQUE DEFAULT NULL, 
+			taskId INT UNSIGNED NOT NULL AUTO_INCREMENT, 
+			name VARCHAR(100) UNIQUE DEFAULT NOT NULL, 
+			description VARCHAR(255) UNIQUE DEFAULT NOT NULL, 
 			createTime DATETIME UNIQUE DEFAULT NULL, 
 			receiver VARCHAR(100) UNIQUE DEFAULT NULL, 
 			poster VARCHAR(100) UNIQUE DEFAULT NULL, 

@@ -27,13 +27,13 @@ var (
 	roleSqlString = []string{
 		`CREATE TABLE IF NOT EXISTS role (
 			id 	        INT UNSIGNED NOT NULL AUTO_INCREMENT,
-			name		VARCHAR(512) UNIQUE NOT NULL DEFAULT ' ',
-			intro		VARCHAR(512) NOT NULL DEFAULT ' ',
-			created_at 	DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			name		VARCHAR(255) UNIQUE NOT NULL DEFAULT ' ',
+			intro		VARCHAR(255) NOT NULL DEFAULT ' ',
+			createdAt 	DATETIME UNIQUE DEFAULT NULL,
 			PRIMARY KEY (id)
-		) ENGINE=InnoDB AUTO_INCREMENT=1000 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;`,
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8`,
+		`INSERT INTO role(name,intro,createAt) VALUES (?,?,?)`,
 		`UPDATE role SET name = ?,intro = ? WHERE id = ? LIMIT 1`,
-		`UPDATE role SET active = ? WHERE id = ? LIMIT 1`,
 		`SELECT * FROM role LOCK IN SHARE MODE`,
 		`SELECT * FROM role WHERE id = ? LOCK IN SHARE MODE`,
 	}
@@ -45,7 +45,7 @@ func CreateRoleTable(db *sql.DB) error {
 }
 
 func CreateRole(db *sql.DB, name, intro string) error {
-	result, err := db.Exec(roleSqlString[mysqlRoleInsert], name, intro, true)
+	result, err := db.Exec(roleSqlString[mysqlRoleInsert], name, intro, time.Now())
 	if err != nil {
 		return err
 	}

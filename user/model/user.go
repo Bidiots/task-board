@@ -31,8 +31,8 @@ var (
 			PRIMARY KEY (userId)
 		)ENGINE=InnoDB DEFAULT CHARSET=utf8`,
 		`INSERT INTO  %s (name,password) VALUES (?,?)`,
-		`SELECT * FROM %s WHERE userid = ? LIMIT 1 LOCK IN SHARE MODE`,
-		`DELETE FROM %s WHERE userid = ? LIMIT 1`,
+		`SELECT * FROM %s WHERE userId = ? LIMIT 1 LOCK IN SHARE MODE`,
+		`DELETE FROM %s WHERE userId = ? LIMIT 1`,
 		`SELECT password FROM ? WHERE name=? LIMIT 1`,
 	}
 )

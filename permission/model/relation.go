@@ -24,14 +24,14 @@ var (
 
 	relationSqlString = []string{
 		`CREATE TABLE IF NOT EXISTS relation (
-			admin_id 	BIGINT UNSIGNED NOT NULL,
-			role_id		INT UNSIGNED NOT NULL,
-			created_at 	DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-			PRIMARY KEY (admin_id,role_id)
-		) ENGINE=InnoDB AUTO_INCREMENT=1000 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;`,
-		`INSERT INTO relation(admin_id,role_id,created_at) VALUES (?,?,?,?)`,
-		`DELETE FROM relation WHERE admin_id = ? AND role_id = ? LIMIT 1`,
-		`SELECT relation.role_id FROM relation, role WHERE relation.admin_id = ? AND role.active = true AND relation.role_id = role.id LOCK IN SHARE MODE`,
+			adminId 	BIGINT UNSIGNED NOT NULL,
+			roleId	INT UNSIGNED NOT NULL,
+			createdAt 	DATETIME UNIQUE DEFAULT NULL ,
+			PRIMARY KEY (adminId,roleId)
+		) ENGINE=InnoDB  DEFAULT CHARSET=utf8`,
+		`INSERT INTO relation(adminId,roleId,createdAt) VALUES (?,?,?)`,
+		`DELETE FROM relation WHERE adminId = ? AND roleId = ? LIMIT 1`,
+		`SELECT relation.roleId FROM relation, role WHERE relation.adminId = ? AND relation.roleId = role.id LOCK IN SHARE MODE`,
 	}
 )
 
@@ -63,7 +63,7 @@ func CreateRelationTable(db *sql.DB) error {
 
 func InsertRelation(db *sql.DB, aid, rid int) error {
 
-	_, err := db.Exec(relationSqlString[mysqlRelationInsert], aid, rid, time.Now())
+	_, err := db.Exec(relationSqlString[mysqlRelationInsert], aid, time.Now())
 	if err != nil {
 		return err
 	}
