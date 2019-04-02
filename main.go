@@ -21,6 +21,7 @@ func main() {
 	UserCon := user.New(dbConn, "user1")
 	TaskCon := task.New(dbConn, "task")
 	Permission := permission.New(dbConn)
+	router.POST("/user/register", UserCon.Register)
 	router.POST("/user/login", UserCon.Login)
 	router.Use(UserCon.MiddleWareJWT())
 	router.Use(Permission.CheckPermission())

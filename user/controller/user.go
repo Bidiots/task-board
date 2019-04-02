@@ -32,7 +32,6 @@ func (u *UserController) RegisterRouter(r gin.IRouter) {
 		log.Fatal(err)
 	}
 
-	r.POST("/register", u.register)
 	r.GET("/delete/:id", u.deleteByID)
 	r.GET("/info/:id", u.infoByID)
 }
@@ -71,7 +70,7 @@ func (u *UserController) deleteByID(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK})
 }
-func (u *UserController) register(c *gin.Context) {
+func (u *UserController) Register(c *gin.Context) {
 	var user1 model.User
 	err := c.BindJSON(&user1)
 	if err != nil {
