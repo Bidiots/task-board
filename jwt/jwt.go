@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	key string = "12345"
+	Key string = "12345"
 )
 
 func CreateToken(m map[string]interface{}) string {
@@ -18,7 +18,7 @@ func CreateToken(m map[string]interface{}) string {
 	}
 	// fmt.Println(_map)
 	token.Claims = claims
-	tokenString, _ := token.SignedString([]byte(key))
+	tokenString, _ := token.SignedString([]byte(Key))
 	return tokenString
 }
 func ParseToken(tokenString string) (interface{}, bool) {
@@ -26,7 +26,7 @@ func ParseToken(tokenString string) (interface{}, bool) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
 		}
-		return []byte(key), nil
+		return []byte(Key), nil
 	})
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		return claims, true

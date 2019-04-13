@@ -3,8 +3,9 @@ package controller
 import (
 	"net/http"
 	"strconv"
-	"task-board/jwt"
-	"task-board/permission/model"
+
+	"../../jwt"
+	"../../permission/model"
 
 	"github.com/gin-gonic/gin"
 )

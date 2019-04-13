@@ -2,7 +2,8 @@ package controller
 
 import (
 	"net/http"
-	"task-board/permission/model"
+
+	"../../permission/model"
 
 	"github.com/gin-gonic/gin"
 )

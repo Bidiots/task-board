@@ -4,7 +4,8 @@ import (
 	"database/sql"
 	"log"
 	"net/http"
-	"task-board/permission/model"
+
+	"../../permission/model"
 
 	"github.com/gin-gonic/gin"
 )

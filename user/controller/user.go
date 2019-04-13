@@ -5,8 +5,9 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-	"task-board/jwt"
-	"task-board/user/model"
+
+	"../../jwt"
+	"../../user/model"
 
 	"github.com/gin-gonic/gin"
 )
@@ -44,14 +45,14 @@ func (u *UserController) infoByID(c *gin.Context) {
 		return
 	}
 
-	ban, err := model.InfoByID(u.db, u.tableName, IDint)
+	user, err := model.InfoByID(u.db, u.tableName, IDint)
 	if err != nil {
 		c.Error(err)
 		c.JSON(http.StatusBadGateway, gin.H{"status": http.StatusBadGateway})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "ban": ban})
+	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "user": user})
 }
 func (u *UserController) deleteByID(c *gin.Context) {
 	ID := c.Param("id")
@@ -89,8 +90,7 @@ func (u *UserController) Register(c *gin.Context) {
 		m["userID"] = userID
 		m["name"] = user1.Name
 		tokenString := jwt.CreateToken(m)
-		c.SetCookie("token", tokenString, 3600, "/", "localhost", false, true)
-
+		c.Header("Authorization", tokenString)
 		c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "msg": "register ok"})
 	} else {
 		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest})
@@ -118,12 +118,11 @@ func (u *UserController) Login(c *gin.Context) {
 			m["name"] = user.Name
 			m["userID"] = user.ID
 			tokenString := jwt.CreateToken(m)
-			c.SetCookie("token", tokenString, 3600, "/", "localhost", false, true)
-
+			c.Header("Authorization", tokenString)
+			c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "msg": "login success"})
 		} else {
 			c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "msg": "password is wrong"})
 		}
 
-		c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "msg": "login ok"})
 	}
 }

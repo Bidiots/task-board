@@ -33,7 +33,7 @@ var (
 		`INSERT INTO  %s (name,password) VALUES (?,?)`,
 		`SELECT * FROM %s WHERE userId = ? LIMIT 1 LOCK IN SHARE MODE`,
 		`DELETE FROM %s WHERE userId = ? LIMIT 1`,
-		`SELECT password FROM ? WHERE name=? LIMIT 1`,
+		`SELECT password FROM %s WHERE name=? LIMIT 1`,
 	}
 )
 
@@ -42,6 +42,7 @@ func CreateTable(db *sql.DB, tableName string) error {
 	_, err := db.Exec(sql)
 	return err
 }
+
 func InsertUser(db *sql.DB, tableName string, name string, password string) (int, error) {
 	sql := fmt.Sprintf(UserSQLString[mysqlUserInsert], tableName)
 	result, err := db.Exec(sql, name, password)
@@ -84,8 +85,8 @@ func DeleteByID(db *sql.DB, tableName string, id int) error {
 	return err
 }
 func InfoPasswordByName(db *sql.DB, tableName string, name string) (string, error) {
-	sql := fmt.Sprintf(UserSQLString[mysqlUserInfoByName], tableName, name)
-	rows, err := db.Query(sql)
+	sql := fmt.Sprintf(UserSQLString[mysqlUserInfoByName], tableName)
+	rows, err := db.Query(sql, name)
 	if err != nil {
 		return "", err
 	}

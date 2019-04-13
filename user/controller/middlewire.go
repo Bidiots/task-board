@@ -3,14 +3,16 @@ package controller
 import (
 	"net/http"
 
-	"task-board/jwt"
+	"../../jwt"
+	j "github.com/dgrijalva/jwt-go"
 
+	"github.com/dgrijalva/jwt-go/request"
 	"github.com/gin-gonic/gin"
 )
 
 func (u *UserController) MiddleWareJWT() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		tokenString := c.Request.Header.Get("token")
+		tokenString := c.GetHeader("Authorization")
 		if tokenString == "" {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"status": http.StatusBadRequest,
@@ -43,5 +45,28 @@ func (u *UserController) MiddleWareJWT() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
+	}
+}
+
+func (u *UserController) CheckJWT() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		token, err := request.ParseFromRequest(c.Request, request.AuthorizationHeaderExtractor,
+			func(token *j.Token) (interface{}, error) {
+				return []byte(jwt.Key), nil
+			})
+		if err == nil {
+			if token.Valid {
+				return
+			} else {
+				c.JSON(http.StatusUnauthorized, gin.H{"status": http.StatusUnauthorized})
+				c.Abort()
+				return
+			}
+		} else {
+			c.JSON(http.StatusUnauthorized, gin.H{"status": http.StatusUnauthorized})
+			c.Abort()
+			return
+		}
+
 	}
 }

@@ -3,7 +3,6 @@ package model
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"time"
 )
 
@@ -12,7 +11,6 @@ type Task struct {
 	Name        string    `json:"name"`
 	Description string    `json:"description"`
 	CreateTime  time.Time `json:"createTime"`
-	Receiver    string    `json:"receiver"`
 	Poster      string    `json:"poster"`
 }
 
@@ -25,101 +23,41 @@ const (
 	mysqlTaskInfoDescripty
 	mysqlTaskPosterByID
 	mysqlTaskUpdateByID
-	mysqlTaskInfoByReceiver
-	mysqlTaskUpdateReceiver
 	mysqlTaskInfoReceiverById
 )
 
 var (
 	errInvalidInsert = errors.New("insert task:insert affected 0 rows")
 	TaskSQLString    = []string{
-		`CREATE TABLE IF NOT EXISTS %s (
+		`CREATE TABLE IF NOT EXISTS tasks (
 			taskId INT UNSIGNED NOT NULL AUTO_INCREMENT, 
-			name VARCHAR(100) UNIQUE DEFAULT NOT NULL, 
-			description VARCHAR(255) UNIQUE DEFAULT NOT NULL, 
-			createTime DATETIME UNIQUE DEFAULT NULL, 
-			receiver VARCHAR(100) UNIQUE DEFAULT NULL, 
+			name VARCHAR(100) UNIQUE DEFAULT "" NOT NULL, 
+			description VARCHAR(255) UNIQUE DEFAULT "" NOT NULL,
+			createTime DATETIME UNIQUE DEFAULT NULL,
 			poster VARCHAR(100) UNIQUE DEFAULT NULL, 
 			PRIMARY KEY (taskId)
-		  ) ENGINE = InnoDB DEFAULT CHARSET = utf8`,
-		`INSERT INTO  %s (name,description,createtime,poster,receiver) VALUES (?,?,?,?,?)`,
-		`SELECT * FROM %s WHERE taskId = ? LIMIT 1 LOCK IN SHARE MODE`,
-		`DELETE FROM %s WHERE taskId = ? LIMIT 1`,
-		`SELECT * FROM %s`,
-		`SELECT description FROM %s WHERE taskId = ? LIMIT 1`,
-		`SELECT poster FROM %s WHERE taskId = ? LIMIT 1`,
-		`UPDATE %s SET description=? WHERE taskId = ? LIMIT 1`,
-		`SELECT * FROM %s WHERE receiver LIKE '%?%'`,
-		`UPDATE %s SET receiver=? WHERE taskId = ? LIMIT 1`,
-		`SELECT %S FROM %s WHERE taskId = ? LIMIT 1`,
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8`,
+		`INSERT INTO tasks (name,description,createtime,poster) VALUES (?,?,?,?)`,
+		`SELECT * FROM tasks WHERE taskId = ? LIMIT 1 LOCK IN SHARE MODE`,
+		`DELETE FROM tasks WHERE taskId = ? LIMIT 1`,
+		`SELECT * FROM tasks`,
+		`SELECT description FROM tasks WHERE taskId = ? LIMIT 1`,
+		`SELECT poster FROM tasks WHERE taskId = ? LIMIT 1`,
+		`UPDATE tasks SET description=? WHERE taskId = ? LIMIT 1`,
+		`SELECT tasks FROM tasks WHERE taskId = ? LIMIT 1`,
 	}
 )
 
-func InfoReceiverByID(db *sql.DB, tableName string, id int) (receiver string, err error) {
-	sql := fmt.Sprintf(TaskSQLString[mysqlTaskUpdateReceiver], tableName)
-	rows, err := db.Query(sql, id)
-	if err != nil {
-		return "", err
-	}
-	for rows.Next() {
-		if err := rows.Scan(&receiver); err != nil {
-			return "", nil
-		}
-	}
-	return receiver, nil
-}
-func UpdateReceiver(db *sql.DB, tableName string, receiver string, id int) error {
-	sql := fmt.Sprintf(TaskSQLString[mysqlTaskUpdateReceiver], tableName)
-	_, err := db.Exec(sql, receiver, id)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-func InfoByReceiver(db *sql.DB, tableName string, receiver string) (tasks []Task, err error) {
-	var (
-		id          int
-		name        string
-		description string
-		createTime  time.Time
-		reciver     string
-		poster      string
-	)
-	sql := fmt.Sprintf(TaskSQLString[mysqlTaskInfoByReceiver], tableName)
-	rows, err := db.Query(sql, receiver)
-	if err != nil {
-		return nil, err
-	}
-	for rows.Next() {
-		if err := rows.Scan(&id, &name, &description, &createTime, &receiver, &poster); err != nil {
-
-			task := Task{
-				ID:          id,
-				Name:        name,
-				Description: description,
-				CreateTime:  createTime,
-				Receiver:    reciver,
-				Poster:      poster,
-			}
-			tasks = append(tasks, task)
-
-		}
-	}
-	return tasks, nil
-
-}
-func UpdateDescriptionByID(db *sql.DB, tableName string, id int, descripty string) error {
-	sql := fmt.Sprintf(TaskSQLString[mysqlTaskUpdateByID], tableName)
-	_, err := db.Exec(sql, descripty, id)
+func UpdateDescriptionByID(db *sql.DB, id int, descripty string) error {
+	_, err := db.Exec(TaskSQLString[mysqlTaskUpdateByID], descripty, id)
 
 	if err != nil {
 		return err
 	}
 	return nil
 }
-func InfoPosterNameByID(db *sql.DB, tableName string, id int) (string, error) {
-	sql := fmt.Sprintf(TaskSQLString[mysqlTaskPosterByID], tableName)
-	rows, err := db.Query(sql, id)
+func InfoPosterNameByID(db *sql.DB, id int) (string, error) {
+	rows, err := db.Query(TaskSQLString[mysqlTaskPosterByID], id)
 	if err != nil {
 		return "", err
 	}
@@ -132,16 +70,16 @@ func InfoPosterNameByID(db *sql.DB, tableName string, id int) (string, error) {
 	}
 	return msg, nil
 }
-func CreateTable(db *sql.DB, tableName string) error {
-	sql := fmt.Sprintf(TaskSQLString[mysqlTaskCreateTable], tableName)
-	_, err := db.Exec(sql)
+func CreateTaskTable(db *sql.DB) error {
+	_, err := db.Exec(TaskSQLString[mysqlTaskCreateTable])
+	if err != nil {
+		return err
+	}
 
-	return err
+	return nil
 }
-func InsertTask(db *sql.DB, tableName string, name string, description string, createTime time.Time, user string) (int, error) {
-	sql := fmt.Sprintf(TaskSQLString[mysqlTaskInsert], tableName)
-	receiver := ""
-	result, err := db.Exec(sql, name, description, createTime, user, receiver)
+func InsertTask(db *sql.DB, name string, description string, createTime time.Time, user string) (int, error) {
+	result, err := db.Exec(TaskSQLString[mysqlTaskInsert], name, description, createTime, user)
 	if err != nil {
 		return 0, err
 	}
@@ -155,44 +93,40 @@ func InsertTask(db *sql.DB, tableName string, name string, description string, c
 	return int(TaskID), err
 
 }
-func InfoByID(db *sql.DB, tableName string, id int) (*Task, error) {
+func InfoByID(db *sql.DB, id int) (*Task, error) {
 	var task Task
-	sql := fmt.Sprintf(TaskSQLString[mysqlTaskInfoByID], tableName)
-	rows, err := db.Query(sql, id)
+	rows, err := db.Query(TaskSQLString[mysqlTaskInfoByID], id)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
 	for rows.Next() {
-		if err := rows.Scan(&task.ID, &task.Name, &task.Description, &task.CreateTime, &task.Receiver, &task.Poster); err != nil {
+		if err := rows.Scan(&task.ID, &task.Name, &task.Description, &task.CreateTime, &task.Poster); err != nil {
 			return nil, err
 		}
 	}
 	return &task, nil
 }
-func DeleteByID(db *sql.DB, tableName string, id int) error {
-	sql := fmt.Sprintf(TaskSQLString[mysqlTaskDeleteByID], tableName)
-	_, err := db.Exec(sql, id)
+func DeleteByID(db *sql.DB, id int) error {
+	_, err := db.Exec(TaskSQLString[mysqlTaskDeleteByID], id)
 	return err
 }
-func InfoAllTask(db *sql.DB, tableName string) (tasks []Task, err error) {
+func InfoAllTask(db *sql.DB) (tasks []Task, err error) {
 	var (
 		id          int
 		name        string
 		description string
 		createTime  time.Time
-		receiver    string
 		poster      string
 	)
-	sql := fmt.Sprintf(TaskSQLString[mysqlTaskInfoAll], tableName)
-	rows, err := db.Query(sql)
+	rows, err := db.Query(TaskSQLString[mysqlTaskInfoAll])
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 	for rows.Next() {
-		if err := rows.Scan(&id, &name, &description, &createTime, &receiver, &poster); err != nil {
+		if err := rows.Scan(&id, &name, &description, &createTime, &poster); err != nil {
 			return nil, err
 		}
 		task := Task{
@@ -200,16 +134,14 @@ func InfoAllTask(db *sql.DB, tableName string) (tasks []Task, err error) {
 			Name:        name,
 			Description: description,
 			CreateTime:  createTime,
-			Receiver:    receiver,
 			Poster:      poster,
 		}
 		tasks = append(tasks, task)
 	}
 	return tasks, err
 }
-func InfoDescription(db *sql.DB, tableName string, id int) (string, error) {
-	sql := fmt.Sprintf(TaskSQLString[mysqlTaskInfoDescripty], tableName)
-	rows, err := db.Query(sql, id)
+func InfoDescription(db *sql.DB, id int) (string, error) {
+	rows, err := db.Query(TaskSQLString[mysqlTaskInfoDescripty], id)
 	if err != nil {
 		return "", nil
 	}
