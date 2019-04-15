@@ -16,13 +16,15 @@ type Task struct {
 
 const (
 	mysqlTaskCreateTable = iota
+
 	mysqlTaskInsert
-	mysqlTaskInfoByID
 	mysqlTaskDeleteByID
-	mysqlTaskInfoAll
-	mysqlTaskInfoDescripty
-	mysqlTaskPosterByID
 	mysqlTaskUpdateByID
+
+	mysqlTaskInfoAll
+	mysqlTaskInfoByID
+	mysqlTaskInfoDescripty
+	mysqlTaskInfoPosterByID
 	mysqlTaskInfoReceiverById
 )
 
@@ -36,40 +38,20 @@ var (
 			createTime DATETIME UNIQUE DEFAULT NULL,
 			poster VARCHAR(100) UNIQUE DEFAULT NULL, 
 			PRIMARY KEY (taskId)
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8`,
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8_md4`,
+
 		`INSERT INTO tasks (name,description,createtime,poster) VALUES (?,?,?,?)`,
-		`SELECT * FROM tasks WHERE taskId = ? LIMIT 1 LOCK IN SHARE MODE`,
 		`DELETE FROM tasks WHERE taskId = ? LIMIT 1`,
-		`SELECT * FROM tasks`,
-		`SELECT description FROM tasks WHERE taskId = ? LIMIT 1`,
-		`SELECT poster FROM tasks WHERE taskId = ? LIMIT 1`,
 		`UPDATE tasks SET description=? WHERE taskId = ? LIMIT 1`,
-		`SELECT tasks FROM tasks WHERE taskId = ? LIMIT 1`,
+
+		`SELECT * FROM tasks LOCK IN SHARE MODE`,
+		`SELECT * FROM tasks WHERE taskId = ? LIMIT 1 LOCK IN SHARE MODE`,
+		`SELECT description FROM tasks WHERE taskId = ? LIMIT 1 LOCK IN SHARE MODE`,
+		`SELECT poster FROM tasks WHERE taskId = ? LIMIT 1 LOCK IN SHARE MODE`,
+		`SELECT tasks FROM tasks WHERE taskId = ? LIMIT 1 LOCK IN SHARE MODE`,
 	}
 )
 
-func UpdateDescriptionByID(db *sql.DB, id int, descripty string) error {
-	_, err := db.Exec(TaskSQLString[mysqlTaskUpdateByID], descripty, id)
-
-	if err != nil {
-		return err
-	}
-	return nil
-}
-func InfoPosterNameByID(db *sql.DB, id int) (string, error) {
-	rows, err := db.Query(TaskSQLString[mysqlTaskPosterByID], id)
-	if err != nil {
-		return "", err
-	}
-	var msg string
-	for rows.Next() {
-		if err = rows.Scan(&msg); err != nil {
-			return "", err
-		}
-
-	}
-	return msg, nil
-}
 func CreateTaskTable(db *sql.DB) error {
 	_, err := db.Exec(TaskSQLString[mysqlTaskCreateTable])
 	if err != nil {
@@ -78,21 +60,62 @@ func CreateTaskTable(db *sql.DB) error {
 
 	return nil
 }
+
 func InsertTask(db *sql.DB, name string, description string, createTime time.Time, user string) (int, error) {
 	result, err := db.Exec(TaskSQLString[mysqlTaskInsert], name, description, createTime, user)
 	if err != nil {
 		return 0, err
 	}
+
 	if rows, _ := result.RowsAffected(); rows == 0 {
 		return 0, errInvalidInsert
 	}
+
 	TaskID, err := result.LastInsertId()
 	if err != nil {
 		return 0, err
 	}
+
 	return int(TaskID), err
 
 }
+
+func DeleteByID(db *sql.DB, id int) error {
+	_, err := db.Exec(TaskSQLString[mysqlTaskDeleteByID], id)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func InfoPosterNameByID(db *sql.DB, id int) (string, error) {
+	rows, err := db.Query(TaskSQLString[mysqlTaskInfoPosterByID], id)
+	if err != nil {
+		return "", err
+	}
+
+	var msg string
+	for rows.Next() {
+		if err = rows.Scan(&msg); err != nil {
+			return "", err
+		}
+	}
+
+	return msg, nil
+}
+
+func UpdateDescriptionByID(db *sql.DB, id int, descripty string) error {
+	_, err := db.Exec(TaskSQLString[mysqlTaskUpdateByID], descripty, id)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func InfoByID(db *sql.DB, id int) (*Task, error) {
 	var task Task
 	rows, err := db.Query(TaskSQLString[mysqlTaskInfoByID], id)
@@ -106,12 +129,10 @@ func InfoByID(db *sql.DB, id int) (*Task, error) {
 			return nil, err
 		}
 	}
+
 	return &task, nil
 }
-func DeleteByID(db *sql.DB, id int) error {
-	_, err := db.Exec(TaskSQLString[mysqlTaskDeleteByID], id)
-	return err
-}
+
 func InfoAllTask(db *sql.DB) (tasks []Task, err error) {
 	var (
 		id          int
@@ -120,15 +141,18 @@ func InfoAllTask(db *sql.DB) (tasks []Task, err error) {
 		createTime  time.Time
 		poster      string
 	)
+
 	rows, err := db.Query(TaskSQLString[mysqlTaskInfoAll])
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
+
 	for rows.Next() {
 		if err := rows.Scan(&id, &name, &description, &createTime, &poster); err != nil {
 			return nil, err
 		}
+
 		task := Task{
 			ID:          id,
 			Name:        name,
@@ -136,15 +160,19 @@ func InfoAllTask(db *sql.DB) (tasks []Task, err error) {
 			CreateTime:  createTime,
 			Poster:      poster,
 		}
+
 		tasks = append(tasks, task)
 	}
+
 	return tasks, err
 }
+
 func InfoDescription(db *sql.DB, id int) (string, error) {
 	rows, err := db.Query(TaskSQLString[mysqlTaskInfoDescripty], id)
 	if err != nil {
 		return "", nil
 	}
+
 	var msg string
 	for rows.Next() {
 		if err := rows.Scan(&msg); err != nil {
@@ -152,6 +180,7 @@ func InfoDescription(db *sql.DB, id int) (string, error) {
 		}
 
 	}
+
 	return msg, err
 
 }

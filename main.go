@@ -15,20 +15,26 @@ import (
 
 func main() {
 	router := gin.Default()
+
 	dbConn, err := sql.Open("mysql", "root:123456@tcp(127.0.0.1:8806)/test1?charset=utf8&parseTime=true")
 	if err != nil {
 		panic(err)
 	}
+
 	UserCon := user.New(dbConn, "user1")
 	TaskCon := task.New(dbConn)
 	Permission := permission.New(dbConn)
+
 	router.POST("/user/register", UserCon.Register)
 	router.POST("/user/login", UserCon.Login)
+
 	//router.Use(UserCon.CheckJWT())
 	//router.Use(Permission.CheckPermission())
+
 	Permission.RegisterRouter(router.Group("/permission"))
 	UserCon.RegisterRouter(router.Group("/user"))
 	TaskCon.RegisterRouter(router.Group("/task"))
+
 	server := &http.Server{
 		Addr:           ":8080",
 		Handler:        router,
@@ -36,5 +42,6 @@ func main() {
 		WriteTimeout:   10 * time.Second,
 		MaxHeaderBytes: 1 << 20,
 	}
+
 	server.ListenAndServe()
 }

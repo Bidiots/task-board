@@ -1,19 +1,23 @@
 package controller
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
-	"../../jwt"
+	"github.com/dgrijalva/jwt-go"
+
 	"../../permission/model"
 
 	"github.com/gin-gonic/gin"
 )
 
 func (c *Controller) CheckPermission() gin.HandlerFunc {
+
 	return func(ctx *gin.Context) {
 		check := false
-		tokenString := ctx.Request.Header.Get("token")
+
+		tokenString := ctx.GetHeader("Authorizatio")
 		if tokenString == "" {
 			ctx.JSON(http.StatusBadRequest, gin.H{
 				"status": http.StatusBadRequest,
@@ -22,21 +26,16 @@ func (c *Controller) CheckPermission() gin.HandlerFunc {
 			ctx.Abort()
 			return
 		}
-		claims, ok := jwt.ParseToken(tokenString)
-		if !ok {
-			ctx.JSON(http.StatusBadRequest, gin.H{
-				"status": http.StatusBadRequest,
-				"msg":    "Wrong Token",
-			})
-			ctx.Abort()
-			return
 
-		}
-		var IDString string
-		claimsmap, ok := claims.(map[string]string)
-		if ok {
-			IDString = claimsmap["userID"]
-		} else {
+		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+			}
+			return []byte("12345"), nil
+		})
+
+		claims, ok := token.Claims.(jwt.MapClaims)
+		if !(ok && token.Valid) {
 			ctx.JSON(http.StatusBadRequest, gin.H{
 				"status": http.StatusBadRequest,
 				"msg":    "Wrong Token",
@@ -44,13 +43,17 @@ func (c *Controller) CheckPermission() gin.HandlerFunc {
 			ctx.Abort()
 			return
 		}
-		userID, err := strconv.Atoi(IDString)
+
+		IDstring := fmt.Sprint(claims["userID"])
+		userID, err := strconv.Atoi(IDstring)
 		if err != nil {
 			ctx.Error(err)
 			ctx.JSON(http.StatusBadGateway, gin.H{"status": http.StatusBadGateway})
 			ctx.Abort()
 		}
+
 		URLL := ctx.Request.URL.Path
+
 		adRole, err := model.GetRoleMap(c.db, userID)
 		if err != nil {
 			ctx.Error(err)
@@ -87,6 +90,7 @@ func (c *Controller) CheckPermission() gin.HandlerFunc {
 			ctx.Abort()
 			return
 		}
+
 		ctx.Next()
 	}
 }

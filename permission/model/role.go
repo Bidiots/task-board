@@ -41,7 +41,12 @@ var (
 
 func CreateRoleTable(db *sql.DB) error {
 	_, err := db.Exec(roleSqlString[mysqlRoleCreateTable])
-	return err
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func CreateRole(db *sql.DB, name, intro string) error {
@@ -49,6 +54,7 @@ func CreateRole(db *sql.DB, name, intro string) error {
 	if err != nil {
 		return err
 	}
+
 	if rows, _ := result.RowsAffected(); rows == 0 {
 		return errInvalidMysql
 	}
@@ -59,7 +65,11 @@ func CreateRole(db *sql.DB, name, intro string) error {
 func ModifyRole(db *sql.DB, id int, name, intro string) error {
 	_, err := db.Exec(roleSqlString[mysqlRoleModify], name, intro, id)
 
-	return err
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func InfoRoleList(db *sql.DB) (*[]role, error) {
@@ -98,6 +108,11 @@ func GetRoleByID(db *sql.DB, id int) (*role, error) {
 	var (
 		r role
 	)
+
 	err := db.QueryRow(roleSqlString[mysqlRoleGetByID], id).Scan(&r.ID, &r.Name, &r.Intro, &r.CreateAt)
-	return &r, err
+	if err != nil {
+		return nil, err
+	}
+
+	return &r, nil
 }

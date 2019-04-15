@@ -16,8 +16,7 @@ import (
 )
 
 type TaskController struct {
-	db        *sql.DB
-	TableName string
+	db *sql.DB
 }
 
 func New(db *sql.DB) *TaskController {
@@ -27,9 +26,6 @@ func New(db *sql.DB) *TaskController {
 }
 
 func (t *TaskController) RegisterRouter(r gin.IRouter) {
-	if r == nil {
-		log.Fatal("[InitRouter]: server is nil")
-	}
 	err := model.CreateTaskTable(t.db)
 	if err != nil {
 		log.Fatal(err)
@@ -40,10 +36,12 @@ func (t *TaskController) RegisterRouter(r gin.IRouter) {
 	}
 	r.POST("/post", t.publish)
 	r.POST("/delete", t.deleteByID)
+
 	r.POST("/info/id", t.infoByID)
 	r.POST("/info/all", t.infoAll)
 	r.GET("/info/download", t.infoAllCsv)
 	r.POST("/info/descripty", t.updateDescription)
+
 	r.POST("/info/reveiver", t.infoReveiverBytask)
 	r.POST("/user/task", t.infoTaskByuser)
 	r.POST("/task/receive", t.receive)
@@ -52,20 +50,24 @@ func (t *TaskController) RegisterRouter(r gin.IRouter) {
 
 func (t *TaskController) publish(c *gin.Context) {
 	task := model.Task{}
+
 	err := c.BindJSON(&task)
 	if err != nil {
 		c.Error(err)
 		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest})
 		return
 	}
+
 	if len(task.Name) == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "msg": "task name can't be empty"})
 		return
 	}
+
 	if len(task.Description) == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "msg": "task descripty can't be empty"})
 		return
 	}
+
 	task.CreateTime = time.Now()
 	_, err = model.InsertTask(t.db, task.Name, task.Description, task.CreateTime, task.Poster)
 	if err != nil {
@@ -73,6 +75,7 @@ func (t *TaskController) publish(c *gin.Context) {
 		c.JSON(http.StatusBadGateway, gin.H{"status": http.StatusBadGateway})
 		return
 	}
+
 	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK})
 }
 
@@ -192,23 +195,26 @@ func (t *TaskController) updateDescription(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest})
 		return
 	}
-	poster, err := model.InfoPosterNameByID(t.db, req.ID)
 
+	poster, err := model.InfoPosterNameByID(t.db, req.ID)
 	if err != nil {
 		c.Error(err)
 		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest})
 		return
 	}
+
 	if ok, _ := regexp.MatchString(req.User, poster); !ok {
 		c.Error(err)
 		c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "msg": "Without Permission"})
 		return
 	}
+
 	err = model.UpdateDescriptionByID(t.db, req.ID, req.Description)
 	if err != nil {
 		c.Error(err)
 		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest})
 		return
 	}
+
 	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK})
 }

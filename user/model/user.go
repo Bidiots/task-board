@@ -15,8 +15,8 @@ type User struct {
 const (
 	mysqlUserCreateTable = iota
 	mysqlUserInsert
-	mysqlUserInfoByID
 	mysqlUserDeleteByID
+	mysqlUserInfoByID
 	mysqlUserInfoByName
 )
 
@@ -29,17 +29,18 @@ var (
 			name        VARCHAR(100) UNIQUE DEFAULT NULL,
 			password	VARCHAR(40)  DEFAULT NULL,
 			PRIMARY KEY (userId)
-		)ENGINE=InnoDB DEFAULT CHARSET=utf8`,
+		)ENGINE=InnoDB DEFAULT CHARSET=utf8_mb4`,
 		`INSERT INTO  %s (name,password) VALUES (?,?)`,
-		`SELECT * FROM %s WHERE userId = ? LIMIT 1 LOCK IN SHARE MODE`,
 		`DELETE FROM %s WHERE userId = ? LIMIT 1`,
-		`SELECT password FROM %s WHERE name=? LIMIT 1`,
+		`SELECT * FROM %s WHERE userId = ? LIMIT 1 LOCK IN SHARE MODE`,
+		`SELECT password FROM %s WHERE name=? LIMIT 1 LOCK IN SHARE MODE`,
 	}
 )
 
 func CreateTable(db *sql.DB, tableName string) error {
 	sql := fmt.Sprintf(UserSQLString[mysqlUserCreateTable], tableName)
 	_, err := db.Exec(sql)
+
 	return err
 }
 
@@ -61,6 +62,16 @@ func InsertUser(db *sql.DB, tableName string, name string, password string) (int
 
 	return int(UserID), nil
 }
+
+func DeleteByID(db *sql.DB, tableName string, id int) error {
+	sql := fmt.Sprintf(UserSQLString[mysqlUserDeleteByID], tableName)
+	_, err := db.Exec(sql, id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func InfoByID(db *sql.DB, tableName string, id int) (*User, error) {
 	var user User
 
@@ -79,19 +90,15 @@ func InfoByID(db *sql.DB, tableName string, id int) (*User, error) {
 
 	return &user, nil
 }
-func DeleteByID(db *sql.DB, tableName string, id int) error {
-	sql := fmt.Sprintf(UserSQLString[mysqlUserDeleteByID], tableName)
-	_, err := db.Exec(sql, id)
-	return err
-}
+
 func InfoPasswordByName(db *sql.DB, tableName string, name string) (string, error) {
 	sql := fmt.Sprintf(UserSQLString[mysqlUserInfoByName], tableName)
 	rows, err := db.Query(sql, name)
 	if err != nil {
 		return "", err
 	}
-	var password string
 
+	var password string
 	for rows.Next() {
 		err = rows.Scan(&password)
 		if err != nil {
@@ -99,5 +106,6 @@ func InfoPasswordByName(db *sql.DB, tableName string, name string) (string, erro
 		}
 
 	}
-	return password, err
+
+	return password, nil
 }

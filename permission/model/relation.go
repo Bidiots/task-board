@@ -40,8 +40,8 @@ func GetRoleMap(db *sql.DB, userID int) (map[int]bool, error) {
 		roleID int
 		result = make(map[int]bool)
 	)
-	rows, err := db.Query(roleSqlString[mysqlRelationRoleMap], userID)
 
+	rows, err := db.Query(roleSqlString[mysqlRelationRoleMap], userID)
 	if err != nil {
 		return nil, err
 	}
@@ -53,16 +53,17 @@ func GetRoleMap(db *sql.DB, userID int) (map[int]bool, error) {
 		}
 		result[roleID] = true
 	}
+
 	return result, nil
 }
 
 func CreateRelationTable(db *sql.DB) error {
 	_, err := db.Exec(relationSqlString[mysqlRelationCreateTable])
+
 	return err
 }
 
 func InsertRelation(db *sql.DB, aid, rid int) error {
-
 	_, err := db.Exec(relationSqlString[mysqlRelationInsert], aid, time.Now())
 	if err != nil {
 		return err

@@ -105,6 +105,7 @@ func InfoPermissions(db *sql.DB) (*[]permission, error) {
 	}
 	return &result, nil
 }
+
 func URLPermissionsMap(db *sql.DB, url string) (map[int]bool, error) {
 	var (
 		roleID int
