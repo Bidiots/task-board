@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+//CheckJWT -
 func (u *UserController) CheckJWT() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		token, err := request.ParseFromRequest(c.Request, request.AuthorizationHeaderExtractor,
@@ -19,16 +20,14 @@ func (u *UserController) CheckJWT() gin.HandlerFunc {
 		if err == nil {
 			if token.Valid {
 				return
-			} else {
-				c.JSON(http.StatusUnauthorized, gin.H{"status": http.StatusUnauthorized})
-				c.Abort()
-				return
 			}
-		} else {
 			c.JSON(http.StatusUnauthorized, gin.H{"status": http.StatusUnauthorized})
 			c.Abort()
 			return
 		}
+		c.JSON(http.StatusUnauthorized, gin.H{"status": http.StatusUnauthorized})
+		c.Abort()
+		return
 
 	}
 }

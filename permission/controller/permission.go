@@ -10,16 +10,19 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+//Controller -
 type Controller struct {
 	db *sql.DB
 }
 
+//New -
 func New(db *sql.DB) *Controller {
 	return &Controller{
 		db: db,
 	}
 }
 
+//RegisterRouter -
 func (c *Controller) RegisterRouter(r gin.IRouter) {
 	err := model.CreateRoleTable(c.db)
 	if err != nil {

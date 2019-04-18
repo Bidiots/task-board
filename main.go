@@ -28,7 +28,7 @@ func main() {
 	router.POST("/user/register", UserCon.Register)
 	router.POST("/user/login", UserCon.Login)
 
-	//router.Use(UserCon.CheckJWT())
+	router.Use(UserCon.CheckJWT())
 	//router.Use(Permission.CheckPermission())
 
 	Permission.RegisterRouter(router.Group("/permission"))

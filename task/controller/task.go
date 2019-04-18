@@ -15,16 +15,19 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+//TaskController -
 type TaskController struct {
 	db *sql.DB
 }
 
+//New -
 func New(db *sql.DB) *TaskController {
 	return &TaskController{
 		db: db,
 	}
 }
 
+//RegisterRouter -
 func (t *TaskController) RegisterRouter(r gin.IRouter) {
 	err := model.CreateTaskTable(t.db)
 	if err != nil {

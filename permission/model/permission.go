@@ -15,49 +15,53 @@ const (
 )
 
 type permission struct {
-	Url       string
+	URL       string
 	RoleID    uint32
 	CreatedAt time.Time
 }
 
 var (
-	permissionSqlString = []string{
+	permissionSQLString = []string{
 		`CREATE TABLE IF NOT EXISTS permission (
 			url			VARCHAR(255) NOT NULL DEFAULT ' ',
 			roleId		MEDIUMINT UNSIGNED NOT NULL,
 			createdAt 	DATETIME UNIQUE DEFAULT NULL,
 			PRIMARY KEY (url,roleId)
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8`,
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 AUTO_INCREMENT=1000`,
 		`INSERT INTO permission(url,roleId) VALUES (?,?)`,
 		`DELETE FROM permission WHERE roleId = ? AND url = ? LIMIT 1`,
-		`SELECT * FROM permission, role WHERE url = ? `,
+		`SELECT * FROM permission, role WHERE url = ? LOCK IN SHARE MODE`,
 		`SELECT * FROM permission LOCK IN SHARE MODE`,
 		`SELECT permission.roleId FROM permission, role WHERE permission.url = ? AND permission.roleId = role.id LOCK IN SHARE MODE`,
 	}
 )
 
+//CreatePermissionTable -
 func CreatePermissionTable(db *sql.DB) error {
-	_, err := db.Exec(permissionSqlString[mysqlPermissionCreateTable])
+	_, err := db.Exec(permissionSQLString[mysqlPermissionCreateTable])
 	return err
 }
 
+//InsertURLPermission -
 func InsertURLPermission(db *sql.DB, rid int, url string) error {
-	_, err := db.Exec(permissionSqlString[mysqlPermissionInstert], url, rid)
+	_, err := db.Exec(permissionSQLString[mysqlPermissionInstert], url, rid)
 	return err
 }
 
+//DeleteURLPermission -
 func DeleteURLPermission(db *sql.DB, rid int, url string) error {
-	_, err := db.Exec(permissionSqlString[mysqlPermissionDelete], rid, url)
+	_, err := db.Exec(permissionSQLString[mysqlPermissionDelete], rid, url)
 	return err
 }
 
+//InfoURLPermissions -
 func InfoURLPermissions(db *sql.DB, url string) (*permission, error) {
 	var (
 		roleID    uint32
 		createdAt time.Time
 	)
 
-	rows, err := db.Query(permissionSqlString[mysqlPermissonGetAll])
+	rows, err := db.Query(permissionSQLString[mysqlPermissonGetAll])
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +72,7 @@ func InfoURLPermissions(db *sql.DB, url string) (*permission, error) {
 			return nil, err
 		}
 		result := &permission{
-			Url:       url,
+			URL:       url,
 			RoleID:    roleID,
 			CreatedAt: createdAt,
 		}
@@ -77,16 +81,17 @@ func InfoURLPermissions(db *sql.DB, url string) (*permission, error) {
 	return nil, nil
 }
 
-func InfoPermissions(db *sql.DB) (*[]permission, error) {
+//InfoPermissions -
+func InfoPermissions(db *sql.DB) ([]*permission, error) {
 	var (
 		roleID    uint32
 		url       string
 		createdAt time.Time
 
-		result []permission
+		result []*permission
 	)
 
-	rows, err := db.Query(permissionSqlString[mysqlPermissonGetAll])
+	rows, err := db.Query(permissionSQLString[mysqlPermissonGetAll])
 	if err != nil {
 		return nil, err
 	}
@@ -96,23 +101,24 @@ func InfoPermissions(db *sql.DB) (*[]permission, error) {
 		if err = rows.Scan(&url, &roleID, &createdAt); err != nil {
 			return nil, err
 		}
-		data := permission{
-			Url:       url,
+		data := &permission{
+			URL:       url,
 			RoleID:    roleID,
 			CreatedAt: createdAt,
 		}
 		result = append(result, data)
 	}
-	return &result, nil
+	return result, nil
 }
 
+//URLPermissionsMap -
 func URLPermissionsMap(db *sql.DB, url string) (map[int]bool, error) {
 	var (
 		roleID int
 		result = make(map[int]bool)
 	)
 
-	rows, err := db.Query(permissionSqlString[mysqlPermissonGetRole], url)
+	rows, err := db.Query(permissionSQLString[mysqlPermissonGetRole], url)
 	if err != nil {
 		return nil, err
 	}

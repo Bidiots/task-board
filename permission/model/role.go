@@ -23,15 +23,15 @@ const (
 
 var (
 	errInvalidMysql = errors.New("affected 0 rows")
-
-	roleSqlString = []string{
+	//roleSQLString -
+	roleSQLString = []string{
 		`CREATE TABLE IF NOT EXISTS role (
 			id 	        INT UNSIGNED NOT NULL AUTO_INCREMENT,
 			name		VARCHAR(255) UNIQUE NOT NULL DEFAULT ' ',
 			intro		VARCHAR(255) NOT NULL DEFAULT ' ',
 			createdAt 	DATETIME UNIQUE DEFAULT NULL,
 			PRIMARY KEY (id)
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8`,
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 AUTO_INCREMENT=1000`,
 		`INSERT INTO role(name,intro,createAt) VALUES (?,?,?)`,
 		`UPDATE role SET name = ?,intro = ? WHERE id = ? LIMIT 1`,
 		`SELECT * FROM role LOCK IN SHARE MODE`,
@@ -39,8 +39,9 @@ var (
 	}
 )
 
+//CreateRoleTable -
 func CreateRoleTable(db *sql.DB) error {
-	_, err := db.Exec(roleSqlString[mysqlRoleCreateTable])
+	_, err := db.Exec(roleSQLString[mysqlRoleCreateTable])
 
 	if err != nil {
 		return err
@@ -49,8 +50,9 @@ func CreateRoleTable(db *sql.DB) error {
 	return nil
 }
 
+//CreateRole -
 func CreateRole(db *sql.DB, name, intro string) error {
-	result, err := db.Exec(roleSqlString[mysqlRoleInsert], name, intro, time.Now())
+	result, err := db.Exec(roleSQLString[mysqlRoleInsert], name, intro, time.Now())
 	if err != nil {
 		return err
 	}
@@ -62,8 +64,9 @@ func CreateRole(db *sql.DB, name, intro string) error {
 	return nil
 }
 
+//ModifyRole -
 func ModifyRole(db *sql.DB, id int, name, intro string) error {
-	_, err := db.Exec(roleSqlString[mysqlRoleModify], name, intro, id)
+	_, err := db.Exec(roleSQLString[mysqlRoleModify], name, intro, id)
 
 	if err != nil {
 		return err
@@ -72,15 +75,16 @@ func ModifyRole(db *sql.DB, id int, name, intro string) error {
 	return nil
 }
 
-func InfoRoleList(db *sql.DB) (*[]role, error) {
+//InfoRoleList -
+func InfoRoleList(db *sql.DB) ([]*role, error) {
 	var (
 		id       uint32
 		name     string
 		intro    string
 		createAt time.Time
-		roles    []role
+		roles    []*role
 	)
-	rows, err := db.Query(roleSqlString[mysqlRoleGetList])
+	rows, err := db.Query(roleSQLString[mysqlRoleGetList])
 	if err != nil {
 		return nil, err
 	}
@@ -98,18 +102,19 @@ func InfoRoleList(db *sql.DB) (*[]role, error) {
 			CreateAt: createAt,
 		}
 
-		roles = append(roles, r)
+		roles = append(roles, &r)
 	}
 
-	return &roles, nil
+	return roles, nil
 }
 
+//GetRoleByID -
 func GetRoleByID(db *sql.DB, id int) (*role, error) {
 	var (
 		r role
 	)
 
-	err := db.QueryRow(roleSqlString[mysqlRoleGetByID], id).Scan(&r.ID, &r.Name, &r.Intro, &r.CreateAt)
+	err := db.QueryRow(roleSQLString[mysqlRoleGetByID], id).Scan(&r.ID, &r.Name, &r.Intro, &r.CreateAt)
 	if err != nil {
 		return nil, err
 	}

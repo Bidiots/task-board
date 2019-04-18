@@ -24,7 +24,7 @@ var (
 		`CREATE TABLE IF NOT EXISTS receiveInfo (
 			taskId INT UNSIGNED NOT NULL , 
 			userId INT UNSIGNED NOT NULL 
-		  ) ENGINE = InnoDB DEFAULT CHARSET = utf8_m4`,
+		  ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4`,
 
 		`INSERT INTO receiveInfo (userId,taskId) VALUES (?,?)`,
 		`DELETE FROM receiveInfo WHERE taskId = ? , userId = ?`,

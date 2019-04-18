@@ -12,16 +12,16 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+//CheckPermission -
 func (c *Controller) CheckPermission() gin.HandlerFunc {
 
 	return func(ctx *gin.Context) {
 		check := false
-
 		tokenString := ctx.GetHeader("Authorizatio")
 		if tokenString == "" {
 			ctx.JSON(http.StatusBadRequest, gin.H{
 				"status": http.StatusBadRequest,
-				"msg":    "No Token",
+				"msg":    "Without Token",
 			})
 			ctx.Abort()
 			return

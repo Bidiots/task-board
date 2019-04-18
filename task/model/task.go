@@ -6,6 +6,7 @@ import (
 	"time"
 )
 
+//Task -
 type Task struct {
 	ID          int       `json:"taskId"`
 	Name        string    `json:"name"`
@@ -30,7 +31,8 @@ const (
 
 var (
 	errInvalidInsert = errors.New("insert task:insert affected 0 rows")
-	TaskSQLString    = []string{
+	//TaskSQLString -
+	TaskSQLString = []string{
 		`CREATE TABLE IF NOT EXISTS tasks (
 			taskId INT UNSIGNED NOT NULL AUTO_INCREMENT, 
 			name VARCHAR(100) UNIQUE DEFAULT "" NOT NULL, 
@@ -38,7 +40,7 @@ var (
 			createTime DATETIME UNIQUE DEFAULT NULL,
 			poster VARCHAR(100) UNIQUE DEFAULT NULL, 
 			PRIMARY KEY (taskId)
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8_md4`,
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 AUTO_INCREMENT=1000`,
 
 		`INSERT INTO tasks (name,description,createtime,poster) VALUES (?,?,?,?)`,
 		`DELETE FROM tasks WHERE taskId = ? LIMIT 1`,
@@ -52,6 +54,7 @@ var (
 	}
 )
 
+//CreateTaskTable -
 func CreateTaskTable(db *sql.DB) error {
 	_, err := db.Exec(TaskSQLString[mysqlTaskCreateTable])
 	if err != nil {
@@ -61,6 +64,7 @@ func CreateTaskTable(db *sql.DB) error {
 	return nil
 }
 
+// InsertTask -
 func InsertTask(db *sql.DB, name string, description string, createTime time.Time, user string) (int, error) {
 	result, err := db.Exec(TaskSQLString[mysqlTaskInsert], name, description, createTime, user)
 	if err != nil {
@@ -80,6 +84,7 @@ func InsertTask(db *sql.DB, name string, description string, createTime time.Tim
 
 }
 
+//DeleteByID -
 func DeleteByID(db *sql.DB, id int) error {
 	_, err := db.Exec(TaskSQLString[mysqlTaskDeleteByID], id)
 
@@ -90,6 +95,7 @@ func DeleteByID(db *sql.DB, id int) error {
 	return nil
 }
 
+//InfoPosterNameByID -
 func InfoPosterNameByID(db *sql.DB, id int) (string, error) {
 	rows, err := db.Query(TaskSQLString[mysqlTaskInfoPosterByID], id)
 	if err != nil {
@@ -106,6 +112,7 @@ func InfoPosterNameByID(db *sql.DB, id int) (string, error) {
 	return msg, nil
 }
 
+//UpdateDescriptionByID -
 func UpdateDescriptionByID(db *sql.DB, id int, descripty string) error {
 	_, err := db.Exec(TaskSQLString[mysqlTaskUpdateByID], descripty, id)
 
@@ -116,6 +123,7 @@ func UpdateDescriptionByID(db *sql.DB, id int, descripty string) error {
 	return nil
 }
 
+//InfoByID -
 func InfoByID(db *sql.DB, id int) (*Task, error) {
 	var task Task
 	rows, err := db.Query(TaskSQLString[mysqlTaskInfoByID], id)
@@ -133,6 +141,7 @@ func InfoByID(db *sql.DB, id int) (*Task, error) {
 	return &task, nil
 }
 
+//InfoAllTask -
 func InfoAllTask(db *sql.DB) (tasks []Task, err error) {
 	var (
 		id          int
@@ -167,6 +176,7 @@ func InfoAllTask(db *sql.DB) (tasks []Task, err error) {
 	return tasks, err
 }
 
+//InfoDescription -
 func InfoDescription(db *sql.DB, id int) (string, error) {
 	rows, err := db.Query(TaskSQLString[mysqlTaskInfoDescripty], id)
 	if err != nil {

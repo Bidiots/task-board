@@ -12,11 +12,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+//UserController -
 type UserController struct {
 	db        *sql.DB
 	tableName string
 }
 
+//New -
 func New(db *sql.DB, tableName string) *UserController {
 	return &UserController{
 		db:        db,
@@ -24,6 +26,7 @@ func New(db *sql.DB, tableName string) *UserController {
 	}
 }
 
+//RegisterRouter -
 func (u *UserController) RegisterRouter(r gin.IRouter) {
 	if r == nil {
 		log.Fatal("[InitRouter]: server is nil")
@@ -38,6 +41,7 @@ func (u *UserController) RegisterRouter(r gin.IRouter) {
 	r.GET("/info/:id", u.infoByID)
 }
 
+//Register -
 func (u *UserController) Register(c *gin.Context) {
 	var user1 model.User
 	err := c.BindJSON(&user1)
@@ -80,6 +84,7 @@ func (u *UserController) Register(c *gin.Context) {
 
 }
 
+//infoByID -
 func (u *UserController) infoByID(c *gin.Context) {
 	ID := c.Param("id")
 
@@ -100,6 +105,7 @@ func (u *UserController) infoByID(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "user": user})
 }
 
+//deleteByID -
 func (u *UserController) deleteByID(c *gin.Context) {
 	ID := c.Param("id")
 
@@ -120,6 +126,7 @@ func (u *UserController) deleteByID(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK})
 }
 
+//Login -
 func (u *UserController) Login(c *gin.Context) {
 	user := &model.User{}
 	err := c.Bind(user)
